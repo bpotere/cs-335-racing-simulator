@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.FileNotFoundException;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
@@ -15,6 +16,14 @@ public class Main extends Frame {
 	
 	public Main() {
 		super( "Racing Simulator" );
+		
+		/*
+		try {
+			new WavefrontParser( "untitled.obj" );
+		} catch ( FileNotFoundException e ) {
+			
+		}
+		*/
 		
 		setLayout( new BorderLayout() );
 		

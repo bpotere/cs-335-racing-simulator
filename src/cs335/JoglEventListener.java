@@ -8,6 +8,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -17,15 +18,25 @@ import javax.imageio.ImageIO;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
 
+import com.owens.oobjloader.builder.Build;
+import com.owens.oobjloader.builder.Face;
+import com.owens.oobjloader.builder.FaceVertex;
+import com.owens.oobjloader.builder.VertexGeometric;
+import com.owens.oobjloader.builder.VertexTexture;
+import com.owens.oobjloader.parser.Parse;
+
 public class JoglEventListener implements GLEventListener, KeyListener, MouseListener, MouseMotionListener {
 	private int windowWidth, windowHeight;
 	
-	private String skybox = "FullMoon";
+	private String skybox = "ThickCloudsWater";
 	private String[] skybox_suffix = {
 		"Front2048", "Right2048", "Back2048", "Left2048", "Up2048", "Down2048"
 	};
 	
 	private int[] textures = new int[6];
+	
+	// Testing
+	TempBuilder car;
 	
 	private final float frame_step = 0.01f;
 	
@@ -64,6 +75,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Really Nice Perspective Calculations
 		//gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST);
 		
+		gl.glEnable( GL2.GL_BLEND );
+		gl.glBlendFunc( GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA );
+		
+		gl.glEnable( GL2.GL_ALPHA_TEST );
+		gl.glAlphaFunc( GL2.GL_EQUAL, 1.0f );
+		
 		// Generate textures.
 		gl.glEnable( GL2.GL_TEXTURE_2D );
 		gl.glGenTextures( textures.length, textures, 0 );
@@ -77,6 +94,16 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Initialize the keys.
 		for ( int i = 0; i < keys.length; ++i )
 			keys[i] = false;
+		
+		// Testing
+		car = new TempBuilder( gl );
+		try {
+			//new Parse( car, "Lamborghini-Aventador/lambonew.obj" );
+			new Parse( car, "models/police_car/model.obj" );
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void reshape(
@@ -142,7 +169,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 				0.0f, 0.0f, 1.0f );
 		
 		drawSkybox( gl );
-		drawCourse( gl );
+		//drawCourse( gl );
+		drawCar( gl );
 		
 		gl.glPopMatrix();
 	}
@@ -163,6 +191,45 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		} catch ( IOException e ) {
 			System.out.println( e.getMessage() );
 		}
+	}
+	
+	private void drawCar( GL2 gl ) {
+		//car.draw( gl );
+		//gl.glDisable( GL2.GL_TEXTURE_2D );
+		//System.out.println( "BEGIN" );
+		for ( int i = 0; i < car.faces.size(); ++i ) {
+			Face face = car.faces.get( i );
+			
+			//gl.glEnable( GL2.GL_TEXTURE_2D );
+			//gl.glBindTexture( GL2.GL_TEXTURE_2D, 7 );
+
+			if ( -1 != face.material.texid ) {
+				gl.glEnable( GL2.GL_TEXTURE_2D );
+				gl.glBindTexture( GL2.GL_TEXTURE_2D, face.material.texid );
+				//System.out.println( "Changing materials to texture " + face.material.texid );
+			} else {
+				gl.glDisable( GL2.GL_TEXTURE_2D );
+			}
+			
+			gl.glBegin( GL2.GL_TRIANGLES );
+			
+			if ( 3 != face.vertices.size() )
+				System.out.println( "ERROR: Triangles won't work!" );
+			
+			for ( int j = 0; j < face.vertices.size(); ++j ) {
+				FaceVertex vert = face.vertices.get( j );
+				VertexGeometric vert_v = vert.v;
+				VertexTexture vert_t = vert.t;
+				
+				if ( null != vert_t )
+					gl.glTexCoord2f( vert_t.u, vert_t.v ); // Use 1 - v if textures are wrong.
+				gl.glVertex3f( vert_v.x, vert_v.y, vert_v.z);
+			}
+			
+			gl.glEnd();
+		}
+		
+		gl.glEnable( GL2.GL_TEXTURE_2D );
 	}
 	
 	private void drawCourse( GL2 gl ) {
