@@ -36,6 +36,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private TextureLoader texture_loader = null;
 	private final float skybox_size = 1000.0f;
 	
+	private Camera camera = null;
+	
 	// Testing
 	private TempBuilder car = null;
 	
@@ -49,13 +51,6 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	
 	private final float frame_step = 0.01f;
 	private float tire_rotation = 0.0f;
-	
-	private float scene_eye_x = 0.0f;
-	private float scene_eye_y = 0.0f;
-	private float scene_eye_z = 0.0f;
-	private float scene_look_x = 1.0f;
-	private float scene_look_y = 0.0f;
-	private float scene_look_z = 0.0f;
 	
 	private int mouse_x0 = 0;
 	private int mouse_y0 = 0;
@@ -103,6 +98,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		for ( int i = 0; i < keys.length; ++i )
 			keys[i] = false;
 		
+		camera = new Camera();
+		
 		// Testing
 		car = new TempBuilder( gl );
 		try {
@@ -141,44 +138,28 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		final float throttle_pan = 0.25f;
 		
-		// Update the camera state.
-		if ( keys[KeyEvent.VK_W] || keys[KeyEvent.VK_S] ) {
-			float normxy = (float) Math.sqrt( scene_look_x * scene_look_x + scene_look_y * scene_look_y );
-			float multiplier = keys[KeyEvent.VK_W] ? 1.0f : -1.0f;
-			scene_eye_x += scene_look_x / normxy * throttle_pan * multiplier;
-			scene_eye_y += scene_look_y / normxy * throttle_pan * multiplier;
-			//scene_eye_z += scene_look_z * 0.1f;
-		}
+		// Move forward/backward.
+		if ( keys[ KeyEvent.VK_W ] )
+			camera.moveForward( throttle_pan );
+		else if ( keys[ KeyEvent.VK_S ] )
+			camera.moveBackward( throttle_pan );
 		
-		if ( keys[KeyEvent.VK_R] ) {
-			scene_eye_z += throttle_pan;
-		} else if ( keys[KeyEvent.VK_F] ) {
-			scene_eye_z -= throttle_pan;
-		}
+		// Move up/down.
+		if ( keys[ KeyEvent.VK_R ] )
+			camera.moveUp( throttle_pan );
+		else if ( keys[KeyEvent.VK_F] )
+			camera.moveDown( throttle_pan );
 		
-		if ( keys[KeyEvent.VK_A] || keys[KeyEvent.VK_D] ) {
-			float theta = (float) Math.atan2( scene_look_y, scene_look_x );
-			float phi = (float) Math.acos( scene_look_z );
-			
-			if ( keys[KeyEvent.VK_A] )
-				theta += Math.PI / 2.0;
-			else if ( keys[KeyEvent.VK_D] )
-				theta -= Math.PI / 2.0;
-			
-			float strafe_x = (float)( Math.cos( theta ) * Math.sin( phi ) );
-			float strafe_y = (float)( Math.sin( theta ) * Math.sin( phi ) );
-			float normxy = (float) Math.sqrt( strafe_x * strafe_x + strafe_y * strafe_y );
-			
-			scene_eye_x += strafe_x / normxy * throttle_pan;
-			scene_eye_y += strafe_y / normxy * throttle_pan;
-		}
+		// Strafe left/right.
+		if ( keys[ KeyEvent.VK_A ] )
+			camera.strafeLeft( throttle_pan );
+		else if ( keys[ KeyEvent.VK_D ] )
+			camera.strafeRight( throttle_pan );
 		
-		glu.gluLookAt( scene_eye_x, scene_eye_y, scene_eye_z,
-				scene_eye_x + scene_look_x, scene_eye_y + scene_look_y, scene_eye_z + scene_look_z,
-				0.0f, 0.0f, 1.0f );
+		camera.look();
 		
 		gl.glPushMatrix();
-		gl.glTranslatef( scene_eye_x, scene_eye_y, scene_eye_z );
+		gl.glTranslatef( (float) camera.getEyeX(), (float) camera.getEyeY(), (float) camera.getEyeZ() );
 		skybox.draw( gl, skybox_size );
 		gl.glPopMatrix();
 		
@@ -288,32 +269,13 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		int x = e.getX();
 		int y = e.getY();
 		
-		final float throttle_rot = 128.0f;
+		final float throttle_rot = 0.01f;
 		
 		float dx = ( x - mouse_x0 );
 		float dy = ( y - mouse_y0 );
 		
-		if ( MOUSE_MODE_ROTATE == mouse_mode ) {
-			float phi = (float) Math.acos( scene_look_z );
-			float theta = (float) Math.atan2( scene_look_y, scene_look_x );
-			
-			theta -= dx / throttle_rot;
-			phi += dy / throttle_rot;
-			
-			if ( theta >= Math.PI * 2.0 )
-				theta -= Math.PI * 2.0;
-			else if ( theta < 0 )
-				theta += Math.PI * 2.0;
-			
-			if ( phi > Math.PI - 0.1 )
-				phi = (float)( Math.PI - 0.1 );
-			else if ( phi < 0.1f )
-				phi = 0.1f;
-			
-			scene_look_x = (float)( Math.cos( theta ) * Math.sin( phi ) );
-			scene_look_y = (float)( Math.sin( theta ) * Math.sin( phi ) );
-			scene_look_z = (float)( Math.cos( phi ) );
-		}
+		if ( MOUSE_MODE_ROTATE == mouse_mode )
+			camera.rotate( dx * throttle_rot, dy * throttle_rot );
 		
 		mouse_x0 = x;
 		mouse_y0 = y;
