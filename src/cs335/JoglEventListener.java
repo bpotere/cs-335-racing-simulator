@@ -32,12 +32,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private int windowWidth, windowHeight;
 	
 	private String skybox_name = "ThickCloudsWater";
-	Skybox skybox = null;
-	TextureLoader texture_loader = null;
-	float skybox_size = 1000.0f;
+	private Skybox skybox = null;
+	private TextureLoader texture_loader = null;
+	private final float skybox_size = 1000.0f;
 	
 	// Testing
-	TempBuilder car = null;
+	private TempBuilder car = null;
 	
 	private double[] control_points = {
 		127.29361,186.37989, 414.66858,7.0116203, 576.67863,280.88575,
