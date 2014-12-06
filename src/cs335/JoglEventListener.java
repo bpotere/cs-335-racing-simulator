@@ -12,6 +12,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
@@ -28,17 +31,24 @@ import com.owens.oobjloader.parser.Parse;
 public class JoglEventListener implements GLEventListener, KeyListener, MouseListener, MouseMotionListener {
 	private int windowWidth, windowHeight;
 	
-	private String skybox = "ThickCloudsWater";
-	private String[] skybox_suffix = {
-		"Front2048", "Right2048", "Back2048", "Left2048", "Up2048", "Down2048"
-	};
-	
-	private int[] textures = new int[6];
+	private String skybox_name = "ThickCloudsWater";
+	Skybox skybox = null;
+	TextureLoader texture_loader = null;
+	float skybox_size = 1000.0f;
 	
 	// Testing
-	TempBuilder car;
+	TempBuilder car = null;
+	
+	private double[] control_points = {
+		127.29361,186.37989, 414.66858,7.0116203, 576.67863,280.88575,
+		738.68868,554.75989, 187.08303,539.33036, 437.81287,869.13653,
+		688.54271,1198.9427, 55.932041,955.92763, 94.505863,869.13653,
+		133.07968,782.34543, 316.30534,548.97381, 200.58387,365.74816,
+		84.862407,182.52251, 127.29361,186.37989, 127.29361,186.37989 // z
+	};
 	
 	private final float frame_step = 0.01f;
+	private float tire_rotation = 0.0f;
 	
 	private float scene_eye_x = 0.0f;
 	private float scene_eye_y = 0.0f;
@@ -83,11 +93,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// Generate textures.
 		gl.glEnable( GL2.GL_TEXTURE_2D );
-		gl.glGenTextures( textures.length, textures, 0 );
-		
-		for ( int i = 0; i < 6; ++i )
-			generateTexture( gl, i, "skybox/" + skybox + "/" + skybox + skybox_suffix[ i ] + ".png" );
-		
+		texture_loader = new TextureLoader( gl );
+		skybox = new Skybox( texture_loader, skybox_name );
+
 		gl.glMatrixMode( GL2.GL_MODELVIEW );
 		gl.glLoadIdentity();
 		
@@ -98,7 +106,6 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Testing
 		car = new TempBuilder( gl );
 		try {
-			//new Parse( car, "Lamborghini-Aventador/lambonew.obj" );
 			new Parse( car, "models/police_car/model.obj" );
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -132,19 +139,21 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glMatrixMode( GL2.GL_MODELVIEW );
 		gl.glPushMatrix();
 		
+		final float throttle_pan = 0.25f;
+		
 		// Update the camera state.
 		if ( keys[KeyEvent.VK_W] || keys[KeyEvent.VK_S] ) {
 			float normxy = (float) Math.sqrt( scene_look_x * scene_look_x + scene_look_y * scene_look_y );
 			float multiplier = keys[KeyEvent.VK_W] ? 1.0f : -1.0f;
-			scene_eye_x += scene_look_x / normxy * 0.1f * multiplier;
-			scene_eye_y += scene_look_y / normxy * 0.1f * multiplier;
+			scene_eye_x += scene_look_x / normxy * throttle_pan * multiplier;
+			scene_eye_y += scene_look_y / normxy * throttle_pan * multiplier;
 			//scene_eye_z += scene_look_z * 0.1f;
 		}
 		
 		if ( keys[KeyEvent.VK_R] ) {
-			scene_eye_z += 0.1f;
+			scene_eye_z += throttle_pan;
 		} else if ( keys[KeyEvent.VK_F] ) {
-			scene_eye_z -= 0.1f;
+			scene_eye_z -= throttle_pan;
 		}
 		
 		if ( keys[KeyEvent.VK_A] || keys[KeyEvent.VK_D] ) {
@@ -160,76 +169,84 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			float strafe_y = (float)( Math.sin( theta ) * Math.sin( phi ) );
 			float normxy = (float) Math.sqrt( strafe_x * strafe_x + strafe_y * strafe_y );
 			
-			scene_eye_x += strafe_x / normxy * 0.1f;
-			scene_eye_y += strafe_y / normxy * 0.1f;
+			scene_eye_x += strafe_x / normxy * throttle_pan;
+			scene_eye_y += strafe_y / normxy * throttle_pan;
 		}
 		
 		glu.gluLookAt( scene_eye_x, scene_eye_y, scene_eye_z,
 				scene_eye_x + scene_look_x, scene_eye_y + scene_look_y, scene_eye_z + scene_look_z,
 				0.0f, 0.0f, 1.0f );
 		
-		drawSkybox( gl );
-		//drawCourse( gl );
-		drawCar( gl );
+		gl.glPushMatrix();
+		gl.glTranslatef( scene_eye_x, scene_eye_y, scene_eye_z );
+		skybox.draw( gl, skybox_size );
+		gl.glPopMatrix();
+		
+		for ( int i = 0; i < 5; ++i ) {
+			gl.glTranslatef( 0.0f, 5.0f, 0.0f );
+			drawCar( gl, car );
+		}
 		
 		gl.glPopMatrix();
-	}
-	
-	private void generateTexture( GL2 gl, int texid, String filename ) {
-		try {
-			BufferedImage img = ImageIO.read( new File( filename ) );
-			byte[] data = ( (DataBufferByte) img.getRaster().getDataBuffer() ).getData();
-			
-			gl.glBindTexture( GL2.GL_TEXTURE_2D, textures[texid] );
-			gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR );
-			gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_LINEAR );
-			gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, GL2.GL_CLAMP_TO_EDGE );
-			gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, GL2.GL_CLAMP_TO_EDGE );
-			gl.glTexEnvf( GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE );
-			gl.glTexImage2D( GL2.GL_TEXTURE_2D, 0, GL2.GL_RGB, img.getWidth(),
-					img.getHeight(), 0, GL2.GL_BGR, GL2.GL_UNSIGNED_BYTE, ByteBuffer.wrap( data ) );
-		} catch ( IOException e ) {
-			System.out.println( e.getMessage() );
-		}
-	}
-	
-	private void drawCar( GL2 gl ) {
-		//car.draw( gl );
-		//gl.glDisable( GL2.GL_TEXTURE_2D );
-		//System.out.println( "BEGIN" );
-		for ( int i = 0; i < car.faces.size(); ++i ) {
-			Face face = car.faces.get( i );
-			
-			//gl.glEnable( GL2.GL_TEXTURE_2D );
-			//gl.glBindTexture( GL2.GL_TEXTURE_2D, 7 );
-
-			if ( -1 != face.material.texid ) {
-				gl.glEnable( GL2.GL_TEXTURE_2D );
-				gl.glBindTexture( GL2.GL_TEXTURE_2D, face.material.texid );
-				//System.out.println( "Changing materials to texture " + face.material.texid );
-			} else {
-				gl.glDisable( GL2.GL_TEXTURE_2D );
-			}
-			
-			gl.glBegin( GL2.GL_TRIANGLES );
-			
-			if ( 3 != face.vertices.size() )
-				System.out.println( "ERROR: Triangles won't work!" );
-			
-			for ( int j = 0; j < face.vertices.size(); ++j ) {
-				FaceVertex vert = face.vertices.get( j );
-				VertexGeometric vert_v = vert.v;
-				VertexTexture vert_t = vert.t;
-				
-				if ( null != vert_t )
-					gl.glTexCoord2f( vert_t.u, vert_t.v ); // Use 1 - v if textures are wrong.
-				gl.glVertex3f( vert_v.x, vert_v.y, vert_v.z);
-			}
-			
-			gl.glEnd();
-		}
 		
-		gl.glEnable( GL2.GL_TEXTURE_2D );
+		tire_rotation += 3.0f;
+	}
+	
+	private void drawCar( GL2 gl, TempBuilder car ) {
+		int bind_total = 0;
+		int current_tex_id = -1;
+		for ( Map.Entry<String, ArrayList<Face>> group : car.groups.entrySet() ) {
+			ArrayList<Face> faces = group.getValue();
+			
+			//System.out.println( "Found group with key \"" + group.getKey() + "\"" );
+			
+			if ( group.getKey().equals( "tires_front" ) || group.getKey().equals( "tires_back" ) ) {
+				gl.glPushMatrix();
+				
+				if ( group.getKey().equals( "tires_front" ) ) {
+					gl.glTranslatef( -2.8f, 0.0f, 0.63f );
+					gl.glRotatef( tire_rotation, 0.0f, -1.0f, 0.0f );
+					gl.glTranslatef( 2.8f, 0.0f, -0.63f );
+				} else {
+					gl.glTranslatef( 2.74f, 0.0f, 0.63f );
+					gl.glRotatef( tire_rotation, 0.0f, -1.0f, 0.0f );
+					gl.glTranslatef( -2.74f, 0.0f, -0.63f );
+				}
+			}
+			
+			for ( int j = 0; j < faces.size(); ++j ) {
+				Face face = faces.get( j );
+
+				if ( -1 != face.material.texid && face.material.texid != current_tex_id ) {
+					current_tex_id = face.material.texid;
+					//gl.glEnable( GL2.GL_TEXTURE_2D );
+					gl.glBindTexture( GL2.GL_TEXTURE_2D, face.material.texid );
+					bind_total++;
+				} else {
+					//gl.glDisable( GL2.GL_TEXTURE_2D );
+				}
+				
+				gl.glBegin( GL2.GL_TRIANGLES );
+				
+				for ( int k = 0; k < face.vertices.size(); ++k ) {
+					FaceVertex vert = face.vertices.get( k );
+					VertexGeometric vert_v = vert.v;
+					VertexTexture vert_t = vert.t;
+					
+					if ( null != vert_t )
+						gl.glTexCoord2f( vert_t.u, vert_t.v ); // Use 1 - v if textures are wrong.
+					gl.glVertex3f( vert_v.x, vert_v.y, vert_v.z);
+				}
+				
+				gl.glEnd();
+			}
+			
+			if ( group.getKey().equals( "tires_front" ) || group.getKey().equals( "tires_back" ) ) {
+				gl.glPopMatrix();
+			}
+		}
+
+		//System.out.println( "Needed to bind #" + bind_total );
 	}
 	
 	private void drawCourse( GL2 gl ) {
@@ -244,123 +261,6 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glVertex3f( d, -d, 0.0f );
 		gl.glEnd();
 		gl.glEnable( GL2.GL_TEXTURE_2D );
-	}
-	
-	private void drawSkybox( GL2 gl ) {
-		float d = 1000.0f;
-		
-		gl.glPushMatrix();
-		gl.glTranslatef( scene_eye_x, scene_eye_y, scene_eye_z );
-		
-		// Front
-		gl.glBindTexture( GL2.GL_TEXTURE_2D, textures[ 0 ] );
-		gl.glBegin( GL2.GL_QUADS );
-		
-		gl.glTexCoord2f( 0.0f, 0.0f );
-		gl.glVertex3f( d, d, d );
-		
-		gl.glTexCoord2f( 0.0f, 1.0f );
-		gl.glVertex3f( d, d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 1.0f );
-		gl.glVertex3f( d, -d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 0.0f );
-		gl.glVertex3f( d, -d, d );
-		
-		gl.glEnd();
-		
-		// Right
-		gl.glBindTexture( GL2.GL_TEXTURE_2D, textures[ 3 ] );
-		gl.glBegin( GL2.GL_QUADS );
-		
-		gl.glTexCoord2f( 0.0f, 0.0f );
-		gl.glVertex3f( d, -d, d );
-		
-		gl.glTexCoord2f( 0.0f, 1.0f );
-		gl.glVertex3f( d, -d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 1.0f );
-		gl.glVertex3f( -d, -d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 0.0f );
-		gl.glVertex3f( -d, -d, d );
-		
-		gl.glEnd();
-		
-		// Back
-		gl.glBindTexture( GL2.GL_TEXTURE_2D, textures[ 2 ] );
-		gl.glBegin( GL2.GL_QUADS );
-		
-		gl.glTexCoord2f( 0.0f, 0.0f );
-		gl.glVertex3f( -d, -d, d );
-		
-		gl.glTexCoord2f( 0.0f, 1.0f );
-		gl.glVertex3f( -d, -d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 1.0f );
-		gl.glVertex3f( -d, d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 0.0f );
-		gl.glVertex3f( -d, d, d );
-		
-		gl.glEnd();
-		
-		// Left
-		gl.glBindTexture( GL2.GL_TEXTURE_2D, textures[ 1 ] );
-		gl.glBegin( GL2.GL_QUADS );
-		
-		gl.glTexCoord2f( 0.0f, 0.0f );
-		gl.glVertex3f( -d, d, d );
-		
-		gl.glTexCoord2f( 0.0f, 1.0f );
-		gl.glVertex3f( -d, d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 1.0f );
-		gl.glVertex3f( d, d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 0.0f );
-		gl.glVertex3f( d, d, d );
-		
-		gl.glEnd();
-		
-		// Up
-		gl.glBindTexture( GL2.GL_TEXTURE_2D, textures[ 4 ] );
-		gl.glBegin( GL2.GL_QUADS );
-		
-		gl.glTexCoord2f( 0.0f, 0.0f );
-		gl.glVertex3f( -d, d, d );
-		
-		gl.glTexCoord2f( 0.0f, 1.0f );
-		gl.glVertex3f( d, d, d );
-		
-		gl.glTexCoord2f( 1.0f, 1.0f );
-		gl.glVertex3f( d, -d, d );
-		
-		gl.glTexCoord2f( 1.0f, 0.0f );
-		gl.glVertex3f( -d, -d, d );
-		
-		gl.glEnd();
-		
-		// Up
-		gl.glBindTexture( GL2.GL_TEXTURE_2D, textures[ 5 ] );
-		gl.glBegin( GL2.GL_QUADS );
-		
-		gl.glTexCoord2f( 0.0f, 0.0f );
-		gl.glVertex3f( d, d, -d );
-		
-		gl.glTexCoord2f( 0.0f, 1.0f );
-		gl.glVertex3f( -d, d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 1.0f );
-		gl.glVertex3f( -d, -d, -d );
-		
-		gl.glTexCoord2f( 1.0f, 0.0f );
-		gl.glVertex3f( d, -d, -d );
-		
-		gl.glEnd();
-		
-		gl.glPopMatrix();
 	}
 	
 	@Override

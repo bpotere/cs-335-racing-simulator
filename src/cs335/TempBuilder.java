@@ -84,7 +84,7 @@ public class TempBuilder extends Build {
 			gl.glTexImage2D( GL2.GL_TEXTURE_2D, 0, GL2.GL_RGBA, img.getWidth(),
 					img.getHeight(), 0, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, oglPixelBuf );
 		} catch ( Exception e ) {
-			System.out.println( "Failed to load texture: " + e.getMessage() );
+			System.out.println( "Failed to load texture (" + filename_resolved + "): " + e.getMessage() );
 		}
 	}
 }
