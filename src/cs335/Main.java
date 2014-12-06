@@ -1,41 +1,19 @@
 package cs335;
 
-import java.awt.BorderLayout;
-import java.awt.Frame;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.FileNotFoundException;
-
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
+import javax.swing.JFrame;
 
 import com.jogamp.opengl.util.Animator;
 
-public class Main extends Frame {
+public class Main extends JFrame {
 	static private Animator animator = null;
 	
 	public Main() {
 		super( "Racing Simulator" );
 		
-		/*
-		try {
-			new WavefrontParser( "untitled.obj" );
-		} catch ( FileNotFoundException e ) {
-			
-		}
-		*/
-		
-		setLayout( new BorderLayout() );
-		
-		addWindowListener(new WindowAdapter() {
-			public void windowClosing( WindowEvent e ) {
-				System.exit( 0 );
-			}
-		});
-		
+		setDefaultCloseOperation( EXIT_ON_CLOSE );
 		setSize( 640, 480 );
-		setLocation( 0, 0 );
-		
 		setVisible( true );
 		
 		setupJOGL();
