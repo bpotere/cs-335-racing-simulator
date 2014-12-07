@@ -48,6 +48,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	// Testing
 	private TempBuilder car = null;
 	
+	// Testing basic AI
+	private float ai_car_x = 0.0f;
+	private float ai_car_y = 250.0f;
+	private float ai_car_t = 0.0f;
+	private float ai_car_theta = 0.0f;
+	
 	private double[] control_points = {
 		127.29361,186.37989, 414.66858,7.0116203, 576.67863,280.88575,
 		738.68868,554.75989, 187.08303,539.33036, 437.81287,869.13653,
@@ -181,6 +187,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		else if ( keys[ KeyEvent.VK_D ] )
 			camera.strafeRight( throttle_pan );
 		
+		// Update AI position.
+		ai_car_t += 0.001f;
+		ai_car_x = (float) ( a * Math.cos( ai_car_t ) );
+		ai_car_y = (float) ( b * Math.sin( ai_car_t ) );
+		camera.moveTo( ai_car_x, ai_car_y, 10.0 );
+		
 		camera.look();
 		
 		gl.glPushMatrix();
@@ -190,6 +202,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// Draw a car.
 		drawCar( gl, car );
+		
+		// Draw an AI car.
+		gl.glPushMatrix();
+		gl.glTranslated( ai_car_x, ai_car_y, 0.0 );
+		drawCar( gl, car );
+		gl.glPopMatrix();
 		
 		// Draw some billboard trees.
 		for ( int r = 20; r < 50; r += 10 )

@@ -47,6 +47,12 @@ public class Camera {
 		eye_z += dz;
 	}
 	
+	public void moveTo( double x, double y, double z ) {
+		eye_x = x;
+		eye_y = y;
+		eye_z = z;
+	}
+	
 	public void strafe( double d, double direction ) {
 		double theta = Math.atan2( look_y, look_x );
 		double phi = Math.acos( look_z );
