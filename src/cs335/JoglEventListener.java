@@ -39,7 +39,6 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	
 	TGABuffer buffer;		//For the tree.tga code provided
 	private final int[] track_textures = new int[3];	//Asphalt etc. goes here
-	private int texName;	//Used to hold current texture name	
 	/**
 	 * Specify the type of billboard that you want
 	 * Provided:
@@ -102,7 +101,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glBlendFunc( GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA );
 		
 		gl.glEnable( GL2.GL_ALPHA_TEST );
-		gl.glAlphaFunc( GL2.GL_EQUAL, 1.0f );
+		gl.glAlphaFunc( GL2.GL_GREATER, 0.0f );
 		
 		// Generate textures.
 		gl.glEnable( GL2.GL_TEXTURE_2D );
@@ -130,16 +129,13 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		buffer = TGABufferMaker.make("racetrack_textures/tree.tga");
 		gl.glEnable(GL.GL_DEPTH_TEST);
 		gl.glGenTextures(3, track_textures, 0);
-		texName = track_textures[0];
-		gl.glBindTexture(GL.GL_TEXTURE_2D, texName);
-		gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_WRAP_S,	GL.GL_REPEAT);
-		gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_WRAP_T,	GL.GL_REPEAT);
-
-		gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_MAG_FILTER	,GL.GL_NEAREST);
-		gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_MIN_FILTER	,GL.GL_LINEAR);
 		
-		gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, buffer.getWidth(), buffer.getHeight(), 
-					0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, buffer.getBuffer());
+		try {
+			texture_loader.loadTexture( track_textures[ 0 ], "racetrack_textures/hackberry_tree.png" );
+		} catch ( Exception e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		gl.glEnable(GL.GL_TEXTURE_2D);
 		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
@@ -327,12 +323,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		//gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 	
-		gl.glEnable(GL.GL_BLEND);
-		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
-		gl.glEnable(GL2.GL_ALPHA_TEST);
+		//gl.glEnable(GL.GL_BLEND);
+		//gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+		//gl.glEnable(GL2.GL_ALPHA_TEST);
 //		glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
-		gl.glAlphaFunc(GL.GL_GREATER, 0);
-		gl.glBindTexture(GL.GL_TEXTURE_2D,texName);
+		//gl.glAlphaFunc(GL.GL_GREATER, 0);
+		gl.glBindTexture(GL.GL_TEXTURE_2D,track_textures[0]);
 		//for(int i = -10; i < 10; i++)
 			//for(int j = -10; j < 10; j++) {
 				gl.glPushMatrix();
@@ -406,10 +402,10 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 				}
 				else {
 					gl.glBegin(GL2.GL_QUADS);
-					gl.glTexCoord2f(0,0);gl.glVertex3f(-3.0f, 0.0f, 0.0f);
-					gl.glTexCoord2f(1,0);gl.glVertex3f(3.0f, 0.0f, 0.0f);
-					gl.glTexCoord2f(1,1);gl.glVertex3f(3.0f, 6.0f,  0.0f);
-					gl.glTexCoord2f(0,1);gl.glVertex3f(-3.0f, 6.0f,  0.0f);
+					gl.glTexCoord2f(0,1-(620.0f/1024));gl.glVertex3f(-3.0f, 0.0f, 0.0f);
+					gl.glTexCoord2f(1,1-(620.0f/1024));gl.glVertex3f(3.0f, 0.0f, 0.0f);
+					gl.glTexCoord2f(1,1);gl.glVertex3f(3.0f, 7.265625f,  0.0f);
+					gl.glTexCoord2f(0,1);gl.glVertex3f(-3.0f, 7.265625f,  0.0f);
 					gl.glEnd();
 				}
 				if (type != 2 && type != 3 && type != 6) // restore matrix
@@ -419,8 +415,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 
 			//}
 		gl.glBindTexture(GL.GL_TEXTURE_2D,0);
-		gl.glDisable(GL.GL_BLEND);
-		gl.glDisable(GL2.GL_ALPHA_TEST);
+		//gl.glDisable(GL.GL_BLEND);
+		//gl.glDisable(GL2.GL_ALPHA_TEST);
 
 		
 		gl.glColor3f(0.0f,1.0f,1.0f);
