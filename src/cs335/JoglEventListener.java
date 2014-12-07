@@ -188,16 +188,15 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		skybox.draw( gl, skybox_size );
 		gl.glPopMatrix();
 		
-		for ( int i = 0; i < 5; ++i ) {
-			gl.glTranslatef( 0.0f, 5.0f, 0.0f );
-			drawCar( gl, car );
-		}
+		// Draw a car.
+		drawCar( gl, car );
 		
-		// Draw a single billboard tree
-		drawBillboard(gl, 0, -1);
-		drawBillboard(gl, -1, 0);
-		drawBillboard(gl, -5, 0);
-		drawCourse(gl);
+		// Draw some billboard trees.
+		for ( int r = 20; r < 50; r += 10 )
+			for ( int theta = 0; theta < 360; theta += 30 )
+				drawBillboard( gl, r * (float) Math.cos( theta * Math.PI / 180 ), r * (float) Math.sin( theta * Math.PI / 180 ) );
+			
+		drawCourse( gl );
 		
 		gl.glPopMatrix();
 		
@@ -261,53 +260,49 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		//System.out.println( "Needed to bind #" + bind_total );
 	}
 	
-	private void drawBillboard( GL2 gl, int i, int j ) {
-		float pos[]=new float[3],right[]=new float[3],up[]=new float[3];
-
-		gl.glBindTexture( GL.GL_TEXTURE_2D, track_textures[0] );
+	private void drawBillboard( GL2 gl, float x, float y ) {
+		gl.glBindTexture( GL.GL_TEXTURE_2D, track_textures[ 0 ] );
 		
 		gl.glPushMatrix();
-		gl.glTranslatef((float)(5+i*10.0f),(float)(5+j * 10.0f), 0.f);
+		gl.glTranslatef( x, y, 0.0f );
 		
-		pos[0] = (float)(5+i*10.0); pos[1] = 0; pos[2] = (float)(5+j * 10.0);
-		
-		float modelview[]=new float[16];
-		int i1,j1;
+		// Get the current modelview matrix.
+		float modelview[] = new float[ 16 ];
+		gl.glGetFloatv( GL2.GL_MODELVIEW_MATRIX, modelview, 0 );
 
-		// save the current modelview matrix
-		gl.glPushMatrix();
-
-		// get the current modelview matrix
-		gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX , modelview,0);
-
-		// undo all rotations
-		// beware all scaling is lost as well 
-		for( i1=0; i1<3; i1++ ) 
-			for( j1=0; j1<3; j1++ ) {
-				if ( i1==j1 )
-					modelview[i1*4+j1] = 1.0f;
+		// Undo all rotations (scaling is also lost).
+		for( int i = 0; i < 3; ++i ) {
+			for( int j = 0; j < 3; ++j ) {
+				if ( i == j )
+					modelview[ i * 4 + j ] = 1.0f;
 				else
-					modelview[i1*4+j1] = 0.0f;
+					modelview[ i * 4 + j ] = 0.0f;
 			}
+		}
 
-		// set the modelview with no rotations
-		gl.glLoadMatrixf(modelview,0);
-		gl.glBegin(GL2.GL_QUADS);
-		gl.glTexCoord2f(0,1-(620.0f/1024));gl.glVertex3f(-3.0f, 0.0f, 0.0f);
-		gl.glTexCoord2f(1,1-(620.0f/1024));gl.glVertex3f(3.0f, 0.0f, 0.0f);
-		gl.glTexCoord2f(1,1);gl.glVertex3f(3.0f, 7.265625f,  0.0f);
-		gl.glTexCoord2f(0,1);gl.glVertex3f(-3.0f, 7.265625f,  0.0f);
+		// Set the modelview matrix with no rotations.
+		gl.glLoadMatrixf( modelview, 0 );
+		
+		// Draw the billboard tree.
+		gl.glBegin( GL2.GL_QUADS );
+		
+		gl.glTexCoord2f( 0, 1 - ( 620.0f / 1024 ) );
+		gl.glVertex3f( -3.0f, 0.0f, 0.0f );
+		
+		gl.glTexCoord2f( 1, 1 - ( 620.0f / 1024 ) );
+		gl.glVertex3f( 3.0f, 0.0f, 0.0f );
+		
+		gl.glTexCoord2f( 1, 1 );
+		gl.glVertex3f( 3.0f, 7.265625f,  0.0f );
+		
+		gl.glTexCoord2f( 0, 1 );
+		gl.glVertex3f( -3.0f, 7.265625f,  0.0f );
+		
 		gl.glEnd();
-		gl.glPopMatrix();
 		
 		gl.glPopMatrix();
 
-		gl.glBindTexture(GL.GL_TEXTURE_2D,0);
-
-
-		gl.glColor3f(0.0f,1.0f,1.0f);
-
-
+		gl.glBindTexture( GL2.GL_TEXTURE_2D, 0 );
 	}
 	
 	private void drawCourse( GL2 gl ) {
