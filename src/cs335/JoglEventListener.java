@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,10 +36,10 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private Skybox skybox = null;
 	private TextureLoader texture_loader = null;
 	private final float skybox_size = 1000.0f;
+	
 	TGABuffer buffer;		//For the tree.tga code provided
 	private final int[] track_textures = new int[3];	//Asphalt etc. goes here
 	private int texName;	//Used to hold current texture name	
-	
 	/**
 	 * Specify the type of billboard that you want
 	 * Provided:
@@ -47,7 +48,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	 * Type 2 = ???
 	 * type 3 = ???
 	 */
-	private int type = 0;		
+	private int type = 0;
+	
+	//The major and minor axis of the racetrack ellipse:
+	private double a = 625;
+	private double b = 250;
 	
 	private Camera camera = null;
 	
@@ -122,25 +127,61 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			e.printStackTrace();
 		}
 		
-		//Billboards
-		//Get the tree.tga texture here
 		buffer = TGABufferMaker.make("racetrack_textures/tree.tga");
 		gl.glEnable(GL.GL_DEPTH_TEST);
 		gl.glGenTextures(3, track_textures, 0);
-        texName = track_textures[0];
-        gl.glBindTexture(GL.GL_TEXTURE_2D, texName);
-        gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_WRAP_S,	GL.GL_REPEAT);
-        gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_WRAP_T,	GL.GL_REPEAT);
+		texName = track_textures[0];
+		gl.glBindTexture(GL.GL_TEXTURE_2D, texName);
+		gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_WRAP_S,	GL.GL_REPEAT);
+		gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_WRAP_T,	GL.GL_REPEAT);
 
-        gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_MAG_FILTER	,GL.GL_NEAREST);
-        gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_MIN_FILTER	,GL.GL_LINEAR);
-    	
-        gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, buffer.getWidth(), buffer.getHeight(), 
-    				0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, buffer.getBuffer());
+		gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_MAG_FILTER	,GL.GL_NEAREST);
+		gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_MIN_FILTER	,GL.GL_LINEAR);
+		
+		gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, buffer.getWidth(), buffer.getHeight(), 
+					0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, buffer.getBuffer());
 
+		gl.glEnable(GL.GL_TEXTURE_2D);
+		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+        //Getting track textures here
+        // load an image 
+        try {
+			BufferedImage aImage = ImageIO.read(new File("racetrack_textures/Asphalt.jpg"));
+			//URL url = new URL("http:\\")
+			ByteBuffer buf = convertImageData(aImage);
+			
+			//gl.glGenTextures(3, track_textures, 0);
+			gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[1]);
+			
+			gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+	        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+
+			gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGB, aImage.getWidth(), 
+                    aImage.getHeight(), 0, GL2.GL_BGR, GL.GL_UNSIGNED_BYTE, buf);
+			
+			
+			gl.glEnable(GL.GL_TEXTURE_2D);
+			
+			gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE);
+			gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
         gl.glEnable(GL.GL_TEXTURE_2D);
         gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		
+	}
+	
+	private ByteBuffer convertImageData(BufferedImage bufferedImage){
+		ByteBuffer imageBuffer;
+		DataBuffer buf = bufferedImage.getRaster().getDataBuffer(); 
+	      
+        
+        final byte[] data = ((DataBufferByte) buf).getData();
+        return (ByteBuffer.wrap(data));
 	}
 	
 	public void reshape(
@@ -203,6 +244,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// Draw a single billboard tree
 		drawBillboard(gl, 0, -1);
+		drawBillboard(gl, -1, 0);
 		drawCourse(gl);
 		
 		gl.glPopMatrix();
@@ -389,6 +431,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private void drawCourse( GL2 gl ) {
 		float d = 300.0f;
 		
+		/*
 		gl.glDisable( GL2.GL_TEXTURE_2D );
 		gl.glColor3f( 1.0f, 1.0f, 1.0f );
 		gl.glBegin( GL2.GL_QUADS );
@@ -398,6 +441,36 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glVertex3f( d, -d, 0.0f );
 		gl.glEnd();
 		gl.glEnable( GL2.GL_TEXTURE_2D );
+		*/
+		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[1]);
+		gl.glBegin( GL2.GL_TRIANGLE_STRIP);
+		//gl.glColor4f(0, 0, 0, 1);
+		
+		
+		for (int i = 0; i < 360; i++){
+			double x = (a - 25) * Math.cos(i/180.0 * Math.PI);
+			double y = (b - 25) * Math.sin(i/180.0 * Math.PI);
+			gl.glTexCoord2d(0, 0);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a + 25) * Math.cos(i/180.0 * Math.PI);
+			y = (b + 25) * Math.sin(i/180.0 * Math.PI);
+			gl.glTexCoord2d(1, 0);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a - 25) * Math.cos((i+1)/180.0 * Math.PI);
+			y = (b - 25) * Math.sin((i+1)/180.0 * Math.PI);
+			gl.glTexCoord2d(1, 1);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a + 25) * Math.cos((i+1)/180.0 * Math.PI);
+			y = (b + 25) * Math.sin((i+1)/180.0 * Math.PI);
+			gl.glTexCoord2d(0, 1);
+			gl.glVertex3d(x, y, 0.0);
+		}
+		gl.glEnd();
+		
+		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
 	}
 	
 	@Override
