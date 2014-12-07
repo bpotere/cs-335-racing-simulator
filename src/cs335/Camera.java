@@ -53,6 +53,13 @@ public class Camera {
 		eye_z = z;
 	}
 	
+	public void lookTowards( double x, double y, double z ) {
+		double norm = Math.sqrt( x * x + y * y + z * z );
+		look_x = x / norm;
+		look_y = y / norm;
+		look_z = z / norm;
+	}
+	
 	public void strafe( double d, double direction ) {
 		double theta = Math.atan2( look_y, look_x );
 		double phi = Math.acos( look_z );

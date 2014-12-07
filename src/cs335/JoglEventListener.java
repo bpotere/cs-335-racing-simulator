@@ -35,14 +35,18 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private String skybox_name = "ThickCloudsWater";
 	private Skybox skybox = null;
 	private TextureLoader texture_loader = null;
-	private final float skybox_size = 1000.0f;
+	private final float skybox_size = 2000.0f;
 	
 	private final int[] track_textures = new int[3]; // Asphalt etc. goes here
 	
 	//The major and minor axis of the racetrack ellipse:
-	private double a = 625;
-	private double b = 250;
+	private double a = 625; // Production value: 625
+	private double b = 250; // Production value: 250
 	
+	// Multiple cameras. The generic "camera" always points to whatever
+	// one is in use.
+	private Camera camera_fp = null;
+	private Camera camera_free = null;
 	private Camera camera = null;
 	
 	// Testing
@@ -111,7 +115,10 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		for ( int i = 0; i < keys.length; ++i )
 			keys[i] = false;
 		
-		camera = new Camera();
+		// Setup the cameras.
+		camera_free = new Camera();
+		camera_fp = new Camera();
+		camera = camera_free;
 		
 		// Testing
 		car = new TempBuilder( gl );
@@ -155,7 +162,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glViewport( 0, 0, width, height );
 		gl.glMatrixMode( GL2.GL_PROJECTION );
 		gl.glLoadIdentity();
-		glu.gluPerspective( 60.0f, (float) windowWidth / windowHeight, 0.1f, 2000.0f );
+		glu.gluPerspective( 60.0f, (float) windowWidth / windowHeight, 0.1f, skybox_size / 2.0 * Math.sqrt( 3 ) );
 	}
 
 	@Override
@@ -171,27 +178,31 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// Move forward/backward.
 		if ( keys[ KeyEvent.VK_W ] )
-			camera.moveForward( throttle_pan );
+			camera_free.moveForward( throttle_pan );
 		else if ( keys[ KeyEvent.VK_S ] )
-			camera.moveBackward( throttle_pan );
+			camera_free.moveBackward( throttle_pan );
 		
 		// Move up/down.
 		if ( keys[ KeyEvent.VK_R ] )
-			camera.moveUp( throttle_pan );
+			camera_free.moveUp( throttle_pan );
 		else if ( keys[KeyEvent.VK_F] )
-			camera.moveDown( throttle_pan );
+			camera_free.moveDown( throttle_pan );
 		
 		// Strafe left/right.
 		if ( keys[ KeyEvent.VK_A ] )
-			camera.strafeLeft( throttle_pan );
+			camera_free.strafeLeft( throttle_pan );
 		else if ( keys[ KeyEvent.VK_D ] )
-			camera.strafeRight( throttle_pan );
+			camera_free.strafeRight( throttle_pan );
 		
 		// Update AI position.
 		ai_car_t += 0.001f;
 		ai_car_x = (float) ( a * Math.cos( ai_car_t ) );
 		ai_car_y = (float) ( b * Math.sin( ai_car_t ) );
-		camera.moveTo( ai_car_x, ai_car_y, 10.0 );
+		float ai_car_dx = (float) ( -a * Math.sin( ai_car_t ) );
+		float ai_car_dy = (float) ( b * Math.cos( ai_car_t ) );
+		ai_car_theta = (float) Math.atan2( ai_car_dy, ai_car_dx );
+		camera_fp.moveTo( ai_car_x, ai_car_y, 3.0 );
+		camera_fp.lookTowards( ai_car_dx, ai_car_dy, 0.0 );
 		
 		camera.look();
 		
@@ -206,6 +217,10 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Draw an AI car.
 		gl.glPushMatrix();
 		gl.glTranslated( ai_car_x, ai_car_y, 0.0 );
+		gl.glRotated( ai_car_theta * 180 / Math.PI, 0.0, 0.0, 1.0 );
+		// Initial rotation to straighten the car to point along the track.
+		// If we export the car correctly, we won't have to do this.
+		gl.glRotated( 180, 0, 0, 1 );
 		drawCar( gl, car );
 		gl.glPopMatrix();
 		
@@ -375,6 +390,21 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	@Override
 	public void keyTyped( KeyEvent e ) {
 		switch ( e.getKeyChar() ) {
+			// Switch to free view camera.
+			case KeyEvent.VK_1:
+				if ( camera != camera_free ) {
+					camera_free.moveTo( camera_fp.getEyeX(), camera_fp.getEyeY(), camera_fp.getEyeZ() );
+					camera_free.lookTowards( camera_fp.getLookX(), camera_fp.getLookY(), camera_fp.getLookZ() );
+					camera = camera_free;
+				}
+				break;
+			
+			// Switch to fps camera.
+			case KeyEvent.VK_2:
+				if ( camera != camera_fp ) {
+					camera = camera_fp;
+				}
+				break;
 		}
 	}
 
@@ -399,7 +429,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		float dy = ( y - mouse_y0 );
 		
 		if ( MOUSE_MODE_ROTATE == mouse_mode )
-			camera.rotate( dx * throttle_rot, dy * throttle_rot );
+			camera_free.rotate( dx * throttle_rot, dy * throttle_rot );
 		
 		mouse_x0 = x;
 		mouse_y0 = y;
