@@ -37,8 +37,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private TextureLoader texture_loader = null;
 	private final float skybox_size = 1000.0f;
 	
-	TGABuffer buffer;		//For the tree.tga code provided
-	private final int[] track_textures = new int[3];	//Asphalt etc. goes here
+	private final int[] track_textures = new int[3]; // Asphalt etc. goes here
 	/**
 	 * Specify the type of billboard that you want
 	 * Provided:
@@ -126,7 +125,6 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			e.printStackTrace();
 		}
 		
-		buffer = TGABufferMaker.make("racetrack_textures/tree.tga");
 		gl.glEnable(GL.GL_DEPTH_TEST);
 		gl.glGenTextures(3, track_textures, 0);
 		
