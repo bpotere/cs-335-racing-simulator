@@ -35,6 +35,19 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private Skybox skybox = null;
 	private TextureLoader texture_loader = null;
 	private final float skybox_size = 1000.0f;
+	TGABuffer buffer;		//For the tree.tga code provided
+	private final int[] track_textures = new int[3];	//Asphalt etc. goes here
+	private int texName;	//Used to hold current texture name	
+	
+	/**
+	 * Specify the type of billboard that you want
+	 * Provided:
+	 * Type 0 = Cheating spherical
+	 * Type 1 = Not provided
+	 * Type 2 = ???
+	 * type 3 = ???
+	 */
+	private int type = 0;		
 	
 	private Camera camera = null;
 	
@@ -108,6 +121,26 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		//Billboards
+		//Get the tree.tga texture here
+		buffer = TGABufferMaker.make("racetrack_textures/tree.tga");
+		gl.glEnable(GL.GL_DEPTH_TEST);
+		gl.glGenTextures(3, track_textures, 0);
+        texName = track_textures[0];
+        gl.glBindTexture(GL.GL_TEXTURE_2D, texName);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_WRAP_S,	GL.GL_REPEAT);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_WRAP_T,	GL.GL_REPEAT);
+
+        gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_MAG_FILTER	,GL.GL_NEAREST);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D,	GL.GL_TEXTURE_MIN_FILTER	,GL.GL_LINEAR);
+    	
+        gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, buffer.getWidth(), buffer.getHeight(), 
+    				0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, buffer.getBuffer());
+
+        gl.glEnable(GL.GL_TEXTURE_2D);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+		
 	}
 	
 	public void reshape(
@@ -167,6 +200,10 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			gl.glTranslatef( 0.0f, 5.0f, 0.0f );
 			drawCar( gl, car );
 		}
+		
+		// Draw a single billboard tree
+		drawBillboard(gl, 0, -1);
+		drawCourse(gl);
 		
 		gl.glPopMatrix();
 		
@@ -228,6 +265,125 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		}
 
 		//System.out.println( "Needed to bind #" + bind_total );
+	}
+	
+	private void drawBillboard( GL2 gl, int i, int j){
+		
+		float pos[]=new float[3],right[]=new float[3],up[]=new float[3];
+
+		double x = camera.getEyeX();
+		double y = camera.getEyeY();
+		double z = camera.getEyeZ();
+		double lx = camera.getLookX();
+		double ly = camera.getLookY();
+		double lz = camera.getLookZ();
+
+		gl.glLoadIdentity();
+		glu.gluLookAt(x, y, z, 
+			      x + lx,y + ly,z + lz,
+				  0.0f,0.0f,1.0f);
+		
+		//gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+	
+		gl.glEnable(GL.GL_BLEND);
+		gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+		gl.glEnable(GL2.GL_ALPHA_TEST);
+//		glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_REPLACE);
+		gl.glAlphaFunc(GL.GL_GREATER, 0);
+		gl.glBindTexture(GL.GL_TEXTURE_2D,texName);
+		//for(int i = -10; i < 10; i++)
+			//for(int j = -10; j < 10; j++) {
+				gl.glPushMatrix();
+				gl.glTranslatef((float)(5+i*10.0f),(float)(5+j * 10.0f), 0.f);
+
+				if (type == 3) {
+					//l3dBillboardGetRightVector(right);
+					float modelview[]=new float[16];
+
+			    	gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, modelview,0);
+
+			    	right[0] = modelview[0];
+			    	right[1] = modelview[4];
+			    	right[2] = modelview[8];
+					up[0] = 0;up[1] = 1;up[2]=0;
+				}
+				if (type == 2) {
+					//l3dBillboardGetUpRightVector(up,right);
+					float modelview[]=new float[16];
+
+					gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX, modelview,0);
+
+					right[0] = modelview[0];
+					right[1] = modelview[4];
+					right[2] = modelview[8];
+
+					up[0] = modelview[1];
+					up[1] = modelview[5];
+					up[2] = modelview[9];
+				}
+
+
+				pos[0] = (float)(5+i*10.0); pos[1] = 0; pos[2] = (float)(5+j * 10.0);
+				if (type == 0) {
+					//l3dBillboardCheatSphericalBegin();
+					float modelview[]=new float[16];
+					int i1,j1;
+
+					// save the current modelview matrix
+					gl.glPushMatrix();
+
+					// get the current modelview matrix
+					gl.glGetFloatv(GL2.GL_MODELVIEW_MATRIX , modelview,0);
+
+					// undo all rotations
+					// beware all scaling is lost as well 
+					for( i1=0; i1<3; i1++ ) 
+						for( j1=0; j1<3; j1++ ) {
+							if ( i1==j1 )
+								modelview[i1*4+j1] = 1.0f;
+							else
+								modelview[i1*4+j1] = 0.0f;
+						}
+
+					// set the modelview with no rotations
+					gl.glLoadMatrixf(modelview,0);
+				}
+				else if (type == 4)
+					{}//l3dBillboardSphericalBegin(cam,pos);
+				else if (type == 5)
+					{}//l3dBillboardCylindricalBegin(cam,pos);
+				else if (type == 1)
+					{}//l3dBillboardCheatCylindricalBegin();
+				if (type == 2 || type == 3) {
+					gl.glBegin(GL2.GL_QUADS);
+					gl.glTexCoord2f(0,0);gl.glVertex3f(-3.0f * right[0],             0.0f,                       -3.0f * right[2]);
+					gl.glTexCoord2f(1,0);gl.glVertex3f( 3.0f * right[0],             0.0f,					    3.0f * right[2]);
+					gl.glTexCoord2f(1,1);gl.glVertex3f( 3.0f * right[0] + 6 * up[0], 6.0f * up[1] + 3 * right[1], 3.0f * right[2] + 6 * up[2]);
+					gl.glTexCoord2f(0,1);gl.glVertex3f(-3.0f * right[0] + 6 * up[0], 6.0f * up[1] - 3 * right[1],-3.0f * right[2] + 6 * up[2]);
+					gl.glEnd();
+				}
+				else {
+					gl.glBegin(GL2.GL_QUADS);
+					gl.glTexCoord2f(0,0);gl.glVertex3f(-3.0f, 0.0f, 0.0f);
+					gl.glTexCoord2f(1,0);gl.glVertex3f(3.0f, 0.0f, 0.0f);
+					gl.glTexCoord2f(1,1);gl.glVertex3f(3.0f, 6.0f,  0.0f);
+					gl.glTexCoord2f(0,1);gl.glVertex3f(-3.0f, 6.0f,  0.0f);
+					gl.glEnd();
+				}
+				if (type != 2 && type != 3 && type != 6) // restore matrix
+					gl.glPopMatrix();
+					//l3dBillboardEnd();
+				gl.glPopMatrix();
+
+			//}
+		gl.glBindTexture(GL.GL_TEXTURE_2D,0);
+		gl.glDisable(GL.GL_BLEND);
+		gl.glDisable(GL2.GL_ALPHA_TEST);
+
+		
+		gl.glColor3f(0.0f,1.0f,1.0f);
+		
+		
 	}
 	
 	private void drawCourse( GL2 gl ) {
