@@ -129,7 +129,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			e.printStackTrace();
 		}
 		
-		gl.glGenTextures( 3, track_textures, 0 );
+		gl.glGenTextures( track_textures.length, track_textures, 0 );
 		
 		// Load the hackberry tree for billboard.
 		try {
