@@ -37,7 +37,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private TextureLoader texture_loader = null;
 	private final float skybox_size = 2000.0f;
 	
-	private final int[] track_textures = new int[3]; // Asphalt etc. goes here
+	private final int[] track_textures = new int[10]; // Asphalt etc. goes here
 	
 	//The major and minor axis of the racetrack ellipse:
 	private double a = 625; // Production value: 625
@@ -142,6 +142,19 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Load the asphalt track texture.
 		try {
 			texture_loader.loadTexture( track_textures[ 1 ], "racetrack_textures/Asphalt.jpg" );
+		} catch ( Exception e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// Load the kerb track texture.
+		try {
+			texture_loader.loadTexture( track_textures[ 2 ], "racetrack_textures/kerb.jpg" );
+		} catch ( Exception e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			texture_loader.loadTexture( track_textures[ 3 ], "racetrack_textures/gravel_seamless.jpg" );
 		} catch ( Exception e ) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -352,11 +365,65 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glEnd();
 		gl.glEnable( GL2.GL_TEXTURE_2D );
 		*/
+		
+		//Draws the inner gravel
+		/*
+		 * This looks pretty bad
+		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[3]);
+		gl.glBegin( GL2.GL_QUAD_STRIP);
+		for (int i = 0; i < 360; i=i+2){
+			double x = (a - 158) * Math.cos(i/180.0 * Math.PI);
+			double y = (b - 158) * Math.sin(i/180.0 * Math.PI);
+			gl.glTexCoord2d(0, 0);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a - 30) * Math.cos(i/180.0 * Math.PI);
+			y = (b - 30) * Math.sin(i/180.0 * Math.PI);
+			gl.glTexCoord2d(1, 0);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a - 158) * Math.cos((i+1)/180.0 * Math.PI);
+			y = (b - 158) * Math.sin((i+1)/180.0 * Math.PI);
+			gl.glTexCoord2d(0, 1);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a - 30) * Math.cos((i+1)/180.0 * Math.PI);
+			y = (b - 30) * Math.sin((i+1)/180.0 * Math.PI);
+			gl.glTexCoord2d(1, 1);
+			gl.glVertex3d(x, y, 0.0);
+		}
+		gl.glEnd();
+		*/
+		
+		//Draws the inner kerb
+		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[2]);
+		gl.glBegin( GL2.GL_QUAD_STRIP);
+		for (int i = 0; i < 360; i++){
+			double x = (a - 30) * Math.cos(i/180.0 * Math.PI);
+			double y = (b - 30) * Math.sin(i/180.0 * Math.PI);
+			gl.glTexCoord2d(0, 0);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a - 25) * Math.cos(i/180.0 * Math.PI);
+			y = (b - 25) * Math.sin(i/180.0 * Math.PI);
+			gl.glTexCoord2d(1, 0);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a - 30) * Math.cos((i+1)/180.0 * Math.PI);
+			y = (b - 30) * Math.sin((i+1)/180.0 * Math.PI);
+			gl.glTexCoord2d(0, 1);
+			gl.glVertex3d(x, y, 0.0);
+			
+			x = (a - 25) * Math.cos((i+1)/180.0 * Math.PI);
+			y = (b - 25) * Math.sin((i+1)/180.0 * Math.PI);
+			gl.glTexCoord2d(1, 1);
+			gl.glVertex3d(x, y, 0.0);
+		}
+		gl.glEnd();
+		
+		//Draws the main course
 		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[1]);
-		gl.glBegin( GL2.GL_TRIANGLE_STRIP);
-		//gl.glColor4f(0, 0, 0, 1);
-		
-		
+		gl.glBegin( GL2.GL_QUAD_STRIP);
 		for (int i = 0; i < 360; i++){
 			double x = (a - 25) * Math.cos(i/180.0 * Math.PI);
 			double y = (b - 25) * Math.sin(i/180.0 * Math.PI);
@@ -370,12 +437,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			
 			x = (a - 25) * Math.cos((i+1)/180.0 * Math.PI);
 			y = (b - 25) * Math.sin((i+1)/180.0 * Math.PI);
-			gl.glTexCoord2d(1, 1);
+			gl.glTexCoord2d(0, 1);
 			gl.glVertex3d(x, y, 0.0);
 			
 			x = (a + 25) * Math.cos((i+1)/180.0 * Math.PI);
 			y = (b + 25) * Math.sin((i+1)/180.0 * Math.PI);
-			gl.glTexCoord2d(0, 1);
+			gl.glTexCoord2d(1, 1);
 			gl.glVertex3d(x, y, 0.0);
 		}
 		gl.glEnd();
