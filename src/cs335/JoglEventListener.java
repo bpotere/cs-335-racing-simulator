@@ -42,6 +42,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	//The major and minor axis of the racetrack ellipse:
 	private double a = 625; // Production value: 625
 	private double b = 250; // Production value: 250
+	private double camber_theta = 9.0/180.0 * Math.PI;
+	private double t_width = 50;
 	
 	// Multiple cameras. The generic "camera" always points to whatever
 	// one is in use.
@@ -55,6 +57,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	// Testing basic AI
 	private float ai_car_x = 0.0f;
 	private float ai_car_y = 250.0f;
+	private float ai_car_z = 0.0f;
 	private float ai_car_t = 0.0f;
 	private float ai_car_theta = 0.0f;
 	
@@ -211,10 +214,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		ai_car_t += 0.001f;
 		ai_car_x = (float) ( a * Math.cos( ai_car_t ) );
 		ai_car_y = (float) ( b * Math.sin( ai_car_t ) );
+		ai_car_z = (float) ( t_width/2.0 * Math.sin(camber_theta) );
 		float ai_car_dx = (float) ( -a * Math.sin( ai_car_t ) );
 		float ai_car_dy = (float) ( b * Math.cos( ai_car_t ) );
 		ai_car_theta = (float) Math.atan2( ai_car_dy, ai_car_dx );
-		camera_fp.moveTo( ai_car_x, ai_car_y, 3.0 );
+		camera_fp.moveTo( ai_car_x, ai_car_y, 3.0 + ai_car_z);
 		camera_fp.lookTowards( ai_car_dx, ai_car_dy, 0.0 );
 		
 		camera.look();
@@ -229,8 +233,10 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// Draw an AI car.
 		gl.glPushMatrix();
-		gl.glTranslated( ai_car_x, ai_car_y, 0.0 );
+		gl.glTranslated( ai_car_x, ai_car_y, ai_car_z );
 		gl.glRotated( ai_car_theta * 180 / Math.PI, 0.0, 0.0, 1.0 );
+		// Initial rotation first to get the car aligned with the track
+		gl.glRotated( -camber_theta * 180.0 / Math.PI, 1.0, 0.0, 0.0);
 		// Initial rotation to straighten the car to point along the track.
 		// If we export the car correctly, we won't have to do this.
 		gl.glRotated( 180, 0, 0, 1 );
@@ -367,8 +373,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		*/
 		
 		//Draws the inner gravel
-		/*
-		 * This looks pretty bad
+		
+		 // This looks pretty bad
 		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[3]);
 		gl.glBegin( GL2.GL_QUAD_STRIP);
 		for (int i = 0; i < 360; i=i+2){
@@ -393,7 +399,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			gl.glVertex3d(x, y, 0.0);
 		}
 		gl.glEnd();
-		*/
+		
 		
 		//Draws the inner kerb
 		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[2]);
@@ -425,25 +431,28 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[1]);
 		gl.glBegin( GL2.GL_QUAD_STRIP);
 		for (int i = 0; i < 360; i++){
-			double x = (a - 25) * Math.cos(i/180.0 * Math.PI);
-			double y = (b - 25) * Math.sin(i/180.0 * Math.PI);
+			//double theta = 9/180.0 * Math.PI;	//The angle of the course section
+			//double t_width = 50;				//50 feet wide for the cars
+			double x = (a - t_width/2.0) * Math.cos(i/180.0 * Math.PI);
+			double y = (b - t_width/2.0) * Math.sin(i/180.0 * Math.PI);
+			double z = t_width * Math.sin(camber_theta);
 			gl.glTexCoord2d(0, 0);
-			gl.glVertex3d(x, y, 0.0);
+			gl.glVertex3d(x, y, 0);
 			
-			x = (a + 25) * Math.cos(i/180.0 * Math.PI);
-			y = (b + 25) * Math.sin(i/180.0 * Math.PI);
+			x = (a + t_width/2.0) * Math.cos(i/180.0 * Math.PI);
+			y = (b + t_width/2.0) * Math.sin(i/180.0 * Math.PI);
 			gl.glTexCoord2d(1, 0);
-			gl.glVertex3d(x, y, 0.0);
+			gl.glVertex3d(x, y, z);
 			
-			x = (a - 25) * Math.cos((i+1)/180.0 * Math.PI);
-			y = (b - 25) * Math.sin((i+1)/180.0 * Math.PI);
+			x = (a - t_width/2.0) * Math.cos((i+1)/180.0 * Math.PI);
+			y = (b - t_width/2.0) * Math.sin((i+1)/180.0 * Math.PI);
 			gl.glTexCoord2d(0, 1);
-			gl.glVertex3d(x, y, 0.0);
+			gl.glVertex3d(x, y, 0);
 			
-			x = (a + 25) * Math.cos((i+1)/180.0 * Math.PI);
-			y = (b + 25) * Math.sin((i+1)/180.0 * Math.PI);
+			x = (a + t_width/2.0) * Math.cos((i+1)/180.0 * Math.PI);
+			y = (b + t_width/2.0) * Math.sin((i+1)/180.0 * Math.PI);
 			gl.glTexCoord2d(1, 1);
-			gl.glVertex3d(x, y, 0.0);
+			gl.glVertex3d(x, y, z);
 		}
 		gl.glEnd();
 		
