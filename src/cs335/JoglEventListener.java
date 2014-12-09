@@ -373,8 +373,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		*/
 		
 		//Draws the inner gravel
-		/*
-		 * This looks pretty bad
+		
+		 // This looks pretty bad
 		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[3]);
 		gl.glBegin( GL2.GL_QUAD_STRIP);
 		for (int i = 0; i < 360; i=i+2){
@@ -399,7 +399,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			gl.glVertex3d(x, y, 0.0);
 		}
 		gl.glEnd();
-		*/
+		
 		
 		//Draws the inner kerb
 		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[2]);
