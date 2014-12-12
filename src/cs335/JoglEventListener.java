@@ -42,6 +42,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	//The major and minor axis of the racetrack ellipse:
 	private double a = 625; // Production value: 625
 	private double b = 250; // Production value: 250
+	private double c = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
 	private double camber_theta = 9.0/180.0 * Math.PI;
 	private double t_width = 50;
 	
@@ -254,7 +255,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glPopMatrix();
 		
 		// Draw a car.
-		//drawCar( gl, car );
+		drawCar( gl, car );
 		
 		// Draw an AI car.
 		gl.glPushMatrix();
@@ -272,24 +273,26 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		for ( int r = 20; r < 50; r += 10 )
 			for ( int theta = 0; theta < 360; theta += 30 )
 				drawBillboard( gl, r * (float) Math.cos( theta * Math.PI / 180 ), r * (float) Math.sin( theta * Math.PI / 180 ) );
-			
-		drawCourse( gl );
 		
-		//Draw the scoring pylon
 		gl.glPushMatrix();
+		drawCourse( gl );
+		gl.glPopMatrix();
 		
-		//gl.glTranslated(10, 0, 0);
-		
+		//Draw two scoring pylons, put them at the focal points of the ellipse
+		gl.glPushMatrix();
+		gl.glTranslated(c, 0, 0);
 		drawScorePylon(gl);
 		gl.glPopMatrix();
 		
+		
+		gl.glPushMatrix();
+		gl.glTranslated(-c, 0, 0);
+		drawScorePylon(gl);
+		gl.glPopMatrix();
 		gl.glPopMatrix();
 		
 		
-		
-		
-		
-		
+		gl.glPopMatrix();
 		
 		tire_rotation += 3.0f;
 	}
