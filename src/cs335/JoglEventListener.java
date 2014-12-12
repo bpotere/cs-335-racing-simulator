@@ -40,11 +40,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private final int[] track_textures = new int[10]; // Asphalt etc. goes here
 	
 	//The major and minor axis of the racetrack ellipse:
-	private double a = 625; // Production value: 625
-	private double b = 250; // Production value: 250
-	private double c = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
-	private double camber_theta = 9.0/180.0 * Math.PI;
-	private double t_width = 50;
+	public static final double a = 625; // Production value: 625
+	public static final double b = 250; // Production value: 250
+	public static final double c = Math.sqrt(Math.pow(a, 2) - Math.pow(b, 2));
+	public static final double camber_theta = 9.0/180.0 * Math.PI;
+	public static final double t_width = 50;
 	
 	// Multiple cameras. The generic "camera" always points to whatever
 	// one is in use.
@@ -52,15 +52,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private Camera camera_free = null;
 	private Camera camera = null;
 	
-	// Testing
-	private Car car = null;
-	
-	// Testing basic AI
-	private float ai_car_x = 0.0f;
-	private float ai_car_y = 250.0f;
-	private float ai_car_z = 0.0f;
-	private float ai_car_t = 0.0f;
-	private float ai_car_theta = 0.0f;
+	// Create some AI cars.
+	private Car[] ai_cars = new Car[ 4 ];
 	
 	private double[] control_points = {
 		127.29361,186.37989, 414.66858,7.0116203, 576.67863,280.88575,
@@ -123,8 +116,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		camera_free.moveTo(-10, 0, 6);
 		
-		// Testing
-		car = new Car( gl );
+		// Init our AI cars.
+		for ( int i = 0; i < ai_cars.length; ++i ) {
+			ai_cars[ i ] = new Car( gl );
+			ai_cars[ i ].setT( i * 0.05 );
+		}
 		
 		gl.glGenTextures( track_textures.length, track_textures, 0 );
 		
@@ -207,7 +203,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glMatrixMode( GL2.GL_MODELVIEW );
 		gl.glPushMatrix();
 		
-		final float throttle_pan = 0.25f;
+		final float throttle_pan = 1.0f;
 		
 		// Move forward/backward.
 		if ( keys[ KeyEvent.VK_W ] )
@@ -227,16 +223,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		else if ( keys[ KeyEvent.VK_D ] )
 			camera_free.strafeRight( throttle_pan );
 		
-		// Update AI position.
-		ai_car_t += 0.001f;
-		ai_car_x = (float) ( a * Math.cos( ai_car_t ) );
-		ai_car_y = (float) ( b * Math.sin( ai_car_t ) );
-		ai_car_z = (float) ( t_width/2.0 * Math.sin(camber_theta) );
-		float ai_car_dx = (float) ( -a * Math.sin( ai_car_t ) );
-		float ai_car_dy = (float) ( b * Math.cos( ai_car_t ) );
-		ai_car_theta = (float) Math.atan2( ai_car_dy, ai_car_dx );
-		camera_fp.moveTo( ai_car_x, ai_car_y, 3.0 + ai_car_z);
-		camera_fp.lookTowards( ai_car_dx, ai_car_dy, 0.0 );
+		// Update AI cars.
+		for ( int i = 0; i < ai_cars.length; ++i )
+			ai_cars[ i ].update();
+		camera_fp.moveTo( ai_cars[ 0 ].getPosition().x, ai_cars[ 0 ].getPosition().y, ai_cars[ 0 ].getPosition().z );
+		camera_fp.lookTowards( ai_cars[ 0 ].getVelocity().x, ai_cars[ 0 ].getVelocity().y, ai_cars[ 0 ].getVelocity().z );
 		
 		camera.look();
 		
@@ -245,20 +236,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		skybox.draw( gl, skybox_size );
 		gl.glPopMatrix();
 		
-		// Draw a car.
-		car.draw( gl );
-		
 		// Draw an AI car.
-		gl.glPushMatrix();
-		gl.glTranslated( ai_car_x, ai_car_y, ai_car_z );
-		gl.glRotated( ai_car_theta * 180 / Math.PI, 0.0, 0.0, 1.0 );
-		// Initial rotation first to get the car aligned with the track
-		gl.glRotated( -camber_theta * 180.0 / Math.PI, 1.0, 0.0, 0.0);
-		// Initial rotation to straighten the car to point along the track.
-		// If we export the car correctly, we won't have to do this.
-		gl.glRotated( 180, 0, 0, 1 );
-		car.draw( gl );
-		gl.glPopMatrix();
+		//gl.glPushMatrix();
+		for ( int i = 0; i < ai_cars.length; ++i )
+			ai_cars[ i ].draw( gl );
+		//gl.glPopMatrix();
 		
 		// Draw some billboard trees.
 		for ( int r = 20; r < 50; r += 10 )

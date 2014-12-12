@@ -14,7 +14,11 @@ import com.owens.oobjloader.parser.Parse;
 
 public class Car {
 	private TempBuilder model;
-	private float tire_rotation = 0.0f;
+	private double tire_rotation;
+	private Vector3 position = new Vector3();
+	private Vector3 velocity = new Vector3();
+	double t;
+	double theta;
 	
 	public Car( GL2 gl ) {
 		model = new TempBuilder( gl );
@@ -25,7 +29,54 @@ public class Car {
 		}
 	}
 	
+	public void setT( double t ) {
+		this.t = t;
+	}
+	
+	public void update() {
+		t += 0.002;
+		position.x = JoglEventListener.a * Math.cos( t );
+		position.y = JoglEventListener.b * Math.sin( t );
+		//position.z = (float) ( JoglEventListener.t_width/2.0 * Math.sin(JoglEventListener.camber_theta) );
+		//position.z = 5.0;
+		velocity.x = -JoglEventListener.a * Math.sin( t );
+		velocity.y = JoglEventListener.b * Math.cos( t );
+		theta = Math.atan2( velocity.y, velocity.x );
+	}
+	
+	public Vector3 getPosition() {
+		return position;
+	}
+	
+	public Vector3 getVelocity() {
+		return velocity;
+	}
+	
+	private void applyTransforms( GL2 gl ) {
+		// Move to where the car should be drawn.
+		gl.glTranslated( position.x, position.y, position.z );
+				
+		// Rotate the car around its derivative, using the track's edge
+		// as the rotational origin.
+		Vector3 direction = velocity.getOrthogonal().getNormalized();
+		// TODO: Needs adjusting if cars can sway on the track.
+		double car_offset = JoglEventListener.t_width / 2.0;
+		gl.glTranslated( car_offset * direction.x, car_offset * direction.y, 0.0 );
+		gl.glRotated( -JoglEventListener.camber_theta * 180 / Math.PI, velocity.x, velocity.y, 0.0 );
+		gl.glTranslated( -car_offset * direction.x, -car_offset * direction.y, 0.0 );
+		
+		// The car should be pointing in the direction of its velocity.
+		gl.glRotated( theta * 180 / Math.PI, 0.0, 0.0, 1.0 );
+		
+		// Initial rotation to straighten the car to point along the track.
+		// If we export the car correctly, we won't have to do this.
+		gl.glRotated( 180, 0, 0, 1 );
+	}
+	
 	public void draw( GL2 gl ) {
+		gl.glPushMatrix();
+		applyTransforms( gl );
+		
 		//int bind_total = 0;
 		int current_tex_id = 0;
 		for ( Map.Entry<String, ArrayList<Face>> group : model.groups.entrySet() ) {
@@ -38,11 +89,11 @@ public class Car {
 				
 				if ( group.getKey().equals( "tires_front" ) ) {
 					gl.glTranslatef( -2.8f, 0.0f, 0.63f );
-					gl.glRotatef( tire_rotation, 0.0f, -1.0f, 0.0f );
+					gl.glRotated( tire_rotation, 0.0f, -1.0f, 0.0f );
 					gl.glTranslatef( 2.8f, 0.0f, -0.63f );
 				} else {
 					gl.glTranslatef( 2.74f, 0.0f, 0.63f );
-					gl.glRotatef( tire_rotation, 0.0f, -1.0f, 0.0f );
+					gl.glRotated( tire_rotation, 0.0f, -1.0f, 0.0f );
 					gl.glTranslatef( -2.74f, 0.0f, -0.63f );
 				}
 			}
@@ -80,5 +131,6 @@ public class Car {
 		}
 
 		//System.out.println( "Needed to bind #" + bind_total );
+		gl.glPopMatrix();
 	}
 }
