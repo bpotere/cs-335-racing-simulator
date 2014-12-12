@@ -123,12 +123,14 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		camera_fp = new Camera();
 		camera = camera_free;
 		
+		camera_free.moveTo(-10, 0, 6);
+		
 		// Testing
 		car = new TempBuilder( gl );
 		try {
 			new Parse( car, "models/police_car/model.obj" );
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		
@@ -138,7 +140,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		try {
 			texture_loader.loadTexture( track_textures[ 0 ], "racetrack_textures/hackberry_tree.png" );
 		} catch ( Exception e ) {
-			// TODO Auto-generated catch block
+		
 			e.printStackTrace();
 		}
 		
@@ -146,20 +148,43 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		try {
 			texture_loader.loadTexture( track_textures[ 1 ], "racetrack_textures/Asphalt.jpg" );
 		} catch ( Exception e ) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
 		// Load the kerb track texture.
 		try {
 			texture_loader.loadTexture( track_textures[ 2 ], "racetrack_textures/kerb.jpg" );
 		} catch ( Exception e ) {
-			// TODO Auto-generated catch block
+			
 			e.printStackTrace();
 		}
+		// Load the gravel texture
 		try {
 			texture_loader.loadTexture( track_textures[ 3 ], "racetrack_textures/gravel_seamless.jpg" );
 		} catch ( Exception e ) {
-			// TODO Auto-generated catch block
+			
+			e.printStackTrace();
+		}
+		// Load the grass texture
+		try {
+			texture_loader.loadTexture( track_textures[ 4 ], "racetrack_textures/grass_seamless.jpg" );
+		} catch ( Exception e ) {
+			
+			e.printStackTrace();
+		}
+		// Load the concrete texture
+		try {
+			texture_loader.loadTexture( track_textures[ 5 ], "racetrack_textures/concrete_seamless.jpg" );
+		} catch ( Exception e ) {
+			
+			e.printStackTrace();
+		}
+		
+		// Load a testing up arrow
+		try {
+			texture_loader.loadTexture( track_textures[ 6 ], "racetrack_textures/UpArrow.jpg" );
+		} catch ( Exception e ) {
+			
 			e.printStackTrace();
 		}
 	}
@@ -229,7 +254,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glPopMatrix();
 		
 		// Draw a car.
-		drawCar( gl, car );
+		//drawCar( gl, car );
 		
 		// Draw an AI car.
 		gl.glPushMatrix();
@@ -250,7 +275,21 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			
 		drawCourse( gl );
 		
+		//Draw the scoring pylon
+		gl.glPushMatrix();
+		
+		//gl.glTranslated(10, 0, 0);
+		
+		drawScorePylon(gl);
 		gl.glPopMatrix();
+		
+		gl.glPopMatrix();
+		
+		
+		
+		
+		
+		
 		
 		tire_rotation += 3.0f;
 	}
@@ -372,31 +411,39 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glEnable( GL2.GL_TEXTURE_2D );
 		*/
 		
-		//Draws the inner gravel
-		
-		 // This looks pretty bad
-		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[3]);
-		gl.glBegin( GL2.GL_QUAD_STRIP);
-		for (int i = 0; i < 360; i=i+2){
-			double x = (a - 158) * Math.cos(i/180.0 * Math.PI);
-			double y = (b - 158) * Math.sin(i/180.0 * Math.PI);
-			gl.glTexCoord2d(0, 0);
-			gl.glVertex3d(x, y, 0.0);
-			
-			x = (a - 30) * Math.cos(i/180.0 * Math.PI);
-			y = (b - 30) * Math.sin(i/180.0 * Math.PI);
+		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[4]);
+		//Draw an inner grass area
+		gl.glBegin( GL2.GL_TRIANGLE_FAN);
+		gl.glTexCoord2d(0, 0);
+		gl.glVertex3d(0.0, 0.0, 0.0);
+		for (int i = 0; i <= 360; i = i + 30){
+			double x = 128 * Math.cos(i/180.0 * Math.PI);
+			double y = 128 * Math.sin(i/180.0 * Math.PI);
 			gl.glTexCoord2d(1, 0);
 			gl.glVertex3d(x, y, 0.0);
 			
-			x = (a - 158) * Math.cos((i+1)/180.0 * Math.PI);
-			y = (b - 158) * Math.sin((i+1)/180.0 * Math.PI);
+			x = 128 * Math.cos(i/180.0 * Math.PI);
+			y = 128 * Math.sin(i/180.0 * Math.PI);
 			gl.glTexCoord2d(0, 1);
 			gl.glVertex3d(x, y, 0.0);
+		}
+		gl.glEnd();
+		
+		//Draws the inner gravel
+		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[3]);
+		gl.glBegin( GL2.GL_TRIANGLE_FAN);
+		gl.glTexCoord2d(0, 0);
+		gl.glVertex3d(0.0, 0.0, -0.05);
+		for (int i = 0; i <= 360; i = i + 30){
+			double x = 1024 * Math.cos(i/180.0 * Math.PI);
+			double y = 1024 * Math.sin(i/180.0 * Math.PI);
+			gl.glTexCoord2d(64, 0);
+			gl.glVertex3d(x, y, -0.05);
 			
-			x = (a - 30) * Math.cos((i+1)/180.0 * Math.PI);
-			y = (b - 30) * Math.sin((i+1)/180.0 * Math.PI);
-			gl.glTexCoord2d(1, 1);
-			gl.glVertex3d(x, y, 0.0);
+			x = 1024 * Math.cos(i/180.0 * Math.PI);
+			y = 1024 * Math.sin(i/180.0 * Math.PI);
+			gl.glTexCoord2d(0, 64);
+			gl.glVertex3d(x, y, -0.05);
 		}
 		gl.glEnd();
 		
@@ -457,6 +504,118 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glEnd();
 		
 		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+	}
+	
+	public void drawCube( final GL2 gl ){
+		 
+		 gl.glTranslated(-0.5, -0.5, 0);
+		 gl.glBegin(GL2.GL_QUADS);
+		
+		 // on the XY plane
+		 // front plane -- top
+		 gl.glNormal3d(0,  0, 1);
+		 //gl.glColor3d(1, 0, 0);
+		 gl.glTexCoord2d(0.0f, 1.0f);
+		 gl.glVertex3d(0, 0, 1); 
+		 gl.glTexCoord2d(1.0f, 1.0f);
+		 gl.glVertex3d(1, 0, 1);
+		 gl.glTexCoord2d(1.0f, 0.0f);
+		 gl.glVertex3d(1, 1, 1); 
+		 gl.glTexCoord2d(0.0f, 0.0f);
+		 gl.glVertex3d(0, 1, 1);
+		
+		 // back plane -- bottom
+		 gl.glNormal3d(0,  0, -1);
+		 //gl.glColor3d(1, 0, 0);
+		 gl.glTexCoord2d(0f, 1f);gl.glVertex3d(0, 0, 0); 
+		 gl.glTexCoord2d(1f, 1f);gl.glVertex3d(1, 0, 0);
+		 gl.glTexCoord2d(1f, 0f);gl.glVertex3d(1, 1, 0); 
+		 gl.glTexCoord2d(0f, 0f);gl.glVertex3d(0, 1, 0);
+		 
+		 // on the YZ plane
+		 // left plane 
+		 gl.glNormal3f(-1,  0, 0);
+		 //gl.glColor3f(0, 1, 0);
+		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(0, 0, 0); 
+		 gl.glTexCoord2f(1f, 0f);gl.glVertex3d(0, 1, 0);
+		 gl.glTexCoord2f(1f, 1f);gl.glVertex3d(0, 1, 1); 
+		 gl.glTexCoord2f(0f, 1f);gl.glVertex3d(0, 0, 1);
+		 
+		 // right plane
+		 gl.glNormal3f(1,  0, 0);
+		 //gl.glColor3f(0, 1, 0);
+		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(1, 0, 0); 
+		 gl.glTexCoord2f(1f, 0f);gl.glVertex3d(1, 1, 0);
+		 gl.glTexCoord2f(1f, 1f);gl.glVertex3d(1, 1, 1); 
+		 gl.glTexCoord2f(0f, 1f);gl.glVertex3d(1, 0, 1);
+		 
+		 
+		 // on the XZ plane,  
+		 // up plane; 
+		 gl.glNormal3f(0,  1, 0);
+		 //gl.glColor3f(0, 0, 1);
+		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(0, 1, 0); 
+		 gl.glTexCoord2f(1f, 0f);gl.glVertex3d(1, 1, 0);
+		 gl.glTexCoord2f(1f, 1f);gl.glVertex3d(1, 1, 1); 
+		 gl.glTexCoord2f(0f, 1f);gl.glVertex3d(0, 1, 1);
+		 
+		 // down plane; 
+		 gl.glNormal3f(0,  -1, 0);
+		 //gl.glColor3f(0, 0, 1);
+		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(0, 0, 0); 
+		 gl.glTexCoord2f(1f, 0f);gl.glVertex3d(1, 0, 0);
+		 gl.glTexCoord2f(1f, 1f);gl.glVertex3d(1, 0, 1); 
+		 gl.glTexCoord2f(0f, 1f);gl.glVertex3d(0, 0, 1);
+		
+		 gl.glEnd(); 
+	}
+	
+	public void drawScorePylon( GL2 gl){
+		
+		// Lower Pole
+		gl.glBindTexture( GL.GL_TEXTURE_2D, track_textures[ 5 ] );
+		gl.glPushMatrix();
+		gl.glScaled(1, 1, 64);
+		drawCube(gl);
+		gl.glPopMatrix();
+		
+		// This part of the pole has writing on the real one
+		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+		gl.glPushMatrix();
+		gl.glColor4d(0, 0, 0, 1);
+		gl.glTranslated(0, 0, 64);
+		gl.glScaled(4, 4, 64);
+		drawCube(gl);
+		gl.glPopMatrix();
+		
+		//Brace
+		gl.glPushMatrix();
+		gl.glTranslated(0, 0, 126);
+		gl.glScaled(24, 4, 4);
+		drawCube(gl);
+		gl.glPopMatrix();
+		
+		//The main screen -- needs a texture
+		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 6 ]);
+		gl.glPushMatrix();
+		gl.glColor4d(0, 0, 0, 1);
+		gl.glTranslated(0, 0, 128);
+		gl.glScaled(32, 32, 32);
+		drawCube(gl);
+		gl.glPopMatrix();
+		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+		
+		//Speakers up top -- needs a texture
+		for ( int theta = 0; theta < 360; theta += 30 ){
+			gl.glPushMatrix();
+			double x = 16 * Math.cos(theta);
+			double y = 16 * Math.sin(theta);
+			gl.glTranslated(x, y, 160);
+			gl.glScaled(4, 4, 4);
+			drawCube(gl);
+			gl.glPopMatrix();
+		}
+		
 	}
 	
 	@Override
