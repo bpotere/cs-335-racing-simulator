@@ -32,7 +32,7 @@ public class TempBuilder extends Build {
 		super.setMapDecalDispBump( type, filename );
 		
 		// Generate a new texture if none exists.
-		if ( -1 == currentMaterialBeingParsed.texid ) {
+		if ( 0 == currentMaterialBeingParsed.texid ) {
 			int[] textures = new int[ 1 ];
 			gl.glGenTextures( 1, textures, 0 );
 			generateTexture( textures[ 0 ], filename );

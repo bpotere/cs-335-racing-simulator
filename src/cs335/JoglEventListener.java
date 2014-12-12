@@ -53,7 +53,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private Camera camera = null;
 	
 	// Testing
-	private TempBuilder car = null;
+	private Car car = null;
 	
 	// Testing basic AI
 	private float ai_car_x = 0.0f;
@@ -69,9 +69,6 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		133.07968,782.34543, 316.30534,548.97381, 200.58387,365.74816,
 		84.862407,182.52251, 127.29361,186.37989, 127.29361,186.37989 // z
 	};
-	
-	private final float frame_step = 0.01f;
-	private float tire_rotation = 0.0f;
 	
 	private int mouse_x0 = 0;
 	private int mouse_y0 = 0;
@@ -127,13 +124,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		camera_free.moveTo(-10, 0, 6);
 		
 		// Testing
-		car = new TempBuilder( gl );
-		try {
-			new Parse( car, "models/police_car/model.obj" );
-		} catch (IOException e) {
-			
-			e.printStackTrace();
-		}
+		car = new Car( gl );
 		
 		gl.glGenTextures( track_textures.length, track_textures, 0 );
 		
@@ -255,7 +246,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glPopMatrix();
 		
 		// Draw a car.
-		drawCar( gl, car );
+		car.draw( gl );
 		
 		// Draw an AI car.
 		gl.glPushMatrix();
@@ -266,7 +257,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Initial rotation to straighten the car to point along the track.
 		// If we export the car correctly, we won't have to do this.
 		gl.glRotated( 180, 0, 0, 1 );
-		drawCar( gl, car );
+		car.draw( gl );
 		gl.glPopMatrix();
 		
 		// Draw some billboard trees.
@@ -293,65 +284,6 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		
 		gl.glPopMatrix();
-		
-		tire_rotation += 3.0f;
-	}
-	
-	private void drawCar( GL2 gl, TempBuilder car ) {
-		int bind_total = 0;
-		int current_tex_id = -1;
-		for ( Map.Entry<String, ArrayList<Face>> group : car.groups.entrySet() ) {
-			ArrayList<Face> faces = group.getValue();
-			
-			//System.out.println( "Found group with key \"" + group.getKey() + "\"" );
-			
-			if ( group.getKey().equals( "tires_front" ) || group.getKey().equals( "tires_back" ) ) {
-				gl.glPushMatrix();
-				
-				if ( group.getKey().equals( "tires_front" ) ) {
-					gl.glTranslatef( -2.8f, 0.0f, 0.63f );
-					gl.glRotatef( tire_rotation, 0.0f, -1.0f, 0.0f );
-					gl.glTranslatef( 2.8f, 0.0f, -0.63f );
-				} else {
-					gl.glTranslatef( 2.74f, 0.0f, 0.63f );
-					gl.glRotatef( tire_rotation, 0.0f, -1.0f, 0.0f );
-					gl.glTranslatef( -2.74f, 0.0f, -0.63f );
-				}
-			}
-			
-			for ( int j = 0; j < faces.size(); ++j ) {
-				Face face = faces.get( j );
-
-				if ( -1 != face.material.texid && face.material.texid != current_tex_id ) {
-					current_tex_id = face.material.texid;
-					//gl.glEnable( GL2.GL_TEXTURE_2D );
-					gl.glBindTexture( GL2.GL_TEXTURE_2D, face.material.texid );
-					bind_total++;
-				} else {
-					//gl.glDisable( GL2.GL_TEXTURE_2D );
-				}
-				
-				gl.glBegin( GL2.GL_TRIANGLES );
-				
-				for ( int k = 0; k < face.vertices.size(); ++k ) {
-					FaceVertex vert = face.vertices.get( k );
-					VertexGeometric vert_v = vert.v;
-					VertexTexture vert_t = vert.t;
-					
-					if ( null != vert_t )
-						gl.glTexCoord2f( vert_t.u, vert_t.v ); // Use 1 - v if textures are wrong.
-					gl.glVertex3f( vert_v.x, vert_v.y, vert_v.z);
-				}
-				
-				gl.glEnd();
-			}
-			
-			if ( group.getKey().equals( "tires_front" ) || group.getKey().equals( "tires_back" ) ) {
-				gl.glPopMatrix();
-			}
-		}
-
-		//System.out.println( "Needed to bind #" + bind_total );
 	}
 	
 	private void drawBillboard( GL2 gl, float x, float y ) {

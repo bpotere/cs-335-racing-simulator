@@ -32,7 +32,7 @@ public class Material {
     public String bumpFilename = null;
     public int reflType = BuilderInterface.MTL_REFL_TYPE_UNKNOWN;
     public String reflFilename = null;
-    public int texid = -1; // Added by Jacob Chappell.
+    public int texid = 0; // Added by Jacob Chappell.
 
     public Material(String name) {
         this.name = name;
