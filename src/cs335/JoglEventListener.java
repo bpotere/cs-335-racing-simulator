@@ -212,6 +212,13 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 						
 			e.printStackTrace();
 		}
+		// Load a green up arrow
+		try {
+			texture_loader.loadTexture( track_textures[ 11 ], "racetrack_textures/speaker.jpg" );
+		} catch ( Exception e ) {
+						
+			e.printStackTrace();
+		}
 	}
 	
 	public void reshape(
@@ -344,6 +351,18 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glTranslated(0, c/4.0, 0);
 		drawGarage(gl);
 		gl.glPopMatrix();
+		
+		for ( int i = 0; i < 360; i = i + 60){
+			double x = a * Math.cos(i/180.0 * Math.PI);
+			double y = b * Math.sin(i/180.0 * Math.PI);
+			gl.glPushMatrix();
+			gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[10]);
+			gl.glTranslated( x, y, 8);
+			
+			gl.glScaled(3, 3, 3);
+			drawCube(gl);
+			gl.glPopMatrix();
+		}
 		
 		gl.glPopMatrix();
 		
@@ -649,6 +668,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		
 		//Speakers up top -- needs a texture
+		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 11 ]); //speaker
 		for ( int theta = 0; theta < 360; theta += 30 ){
 			gl.glPushMatrix();
 			double x = 16 * Math.cos(theta);
