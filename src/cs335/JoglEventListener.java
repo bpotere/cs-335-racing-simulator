@@ -46,6 +46,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	public static final double camber_theta = 9.0/180.0 * Math.PI;
 	public static final double t_width = 50;
 	
+	// Random stuff
+	Random random = new Random();
+	
 	// Multiple cameras. The generic "camera" always points to whatever
 	// one is in use.
 	private Camera camera_fp = null;
@@ -241,8 +244,15 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// Update cars.
 		user_car.update();
-		for ( int i = 0; i < ai_cars.length; ++i )
+		for ( int i = 0; i < ai_cars.length; ++i ) {
+			if ( random.nextInt( 100 ) < 1 ) {
+				if ( random.nextInt( 100 ) < 50 )
+					ai_cars[ i ].swayFluid( -random.nextFloat() * 10 );
+				else
+					ai_cars[ i ].swayFluid( random.nextFloat() * 10 );
+			}
 			ai_cars[ i ].update();
+		}
 		
 		// Hacky camera adjustment for z-coord/up to avoid having to mess with modelview.
 		Vector3 dir_to_track = user_car.getVelocity().getOrthogonal().getNormalized();

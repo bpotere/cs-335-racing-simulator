@@ -17,6 +17,7 @@ public class Car {
 	public static final double ACC_NORM = 0.000005;
 	public static final double MAX_SPEED = 0.0035;
 	public static final double MAX_SPEED_REVERSE = 0.001;
+	public static final double SWAY_STEP = 0.1;
 	protected TempBuilder model;
 	protected double tire_rotation;
 	protected Vector3 position = new Vector3();
@@ -26,6 +27,7 @@ public class Car {
 	protected double sway;
 	protected double acceleration_t;
 	protected double velocity_t = 0.003;
+	protected double sway_amount_fluid = 0.0;
 	
 	public Car( GL2 gl ) {
 		model = new TempBuilder( gl );
@@ -41,6 +43,20 @@ public class Car {
 	}
 	
 	public void update() {
+		// Update sway (fluid).
+		if ( sway_amount_fluid > 0.0 ) {
+			swayLeft();
+			sway_amount_fluid -= SWAY_STEP;
+			if ( sway_amount_fluid < 0.0 )
+				sway_amount_fluid = 0.0;
+		} else if ( sway_amount_fluid < 0.0 ) {
+			swayRight();
+			sway_amount_fluid += SWAY_STEP;
+			if ( sway_amount_fluid > 0.0 )
+				sway_amount_fluid = 0.0;
+		}
+		
+		
 		velocity_t += acceleration_t;
 		if ( velocity_t > MAX_SPEED )
 			velocity_t = MAX_SPEED;
@@ -72,17 +88,24 @@ public class Car {
 	}
 	
 	public void swayLeft() {
-		sway += 0.1;
+		sway += SWAY_STEP;
 		
 		if ( sway > JoglEventListener.t_width / 2.0 )
 			sway = JoglEventListener.t_width / 2.0;
 	}
 	
 	public void swayRight() {
-		sway -= 0.1;
+		sway -= SWAY_STEP;
 		
 		if ( sway < -JoglEventListener.t_width / 2.0 )
 			sway = -JoglEventListener.t_width / 2.0;
+	}
+	
+	public void swayFluid( double amount ) {
+		if ( 0.0 != sway_amount_fluid )
+			return;
+		
+		sway_amount_fluid = amount;
 	}
 	
 	public Vector3 getPosition() {
