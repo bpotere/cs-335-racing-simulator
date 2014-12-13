@@ -12,6 +12,7 @@ public class Camera {
 	private double look_x = 1.0;
 	private double look_y;
 	private double look_z;
+	private Vector3 up = new Vector3( 0.0, 0.0, 1.0 );
 	private GLU glu = new GLU();
 	
 	public Camera() {
@@ -39,6 +40,12 @@ public class Camera {
 	
 	public double getLookZ() {
 		return look_z;
+	}
+	
+	public void setUp( double x, double y, double z ) {
+		up.x = x;
+		up.y = y;
+		up.z = z;
 	}
 	
 	public void move( double dx, double dy, double dz ) {
@@ -125,6 +132,6 @@ public class Camera {
 	}
 	
 	public void look() {
-		glu.gluLookAt( eye_x, eye_y, eye_z, eye_x + look_x, eye_y + look_y, eye_z + look_z, 0.0, 0.0, 1.0 );
+		glu.gluLookAt( eye_x, eye_y, eye_z, eye_x + look_x, eye_y + look_y, eye_z + look_z, up.x, up.y, up.z );
 	}
 }

@@ -233,13 +233,22 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		else if ( keys[ KeyEvent.VK_RIGHT ] )
 			user_car.swayRight();
 		
+		// Accelerate/brake
+		if ( keys[ KeyEvent.VK_UP ] )
+			user_car.accelerate();
+		else if ( keys[ KeyEvent.VK_DOWN ] )
+			user_car.brake();
+		
 		// Update cars.
 		user_car.update();
 		for ( int i = 0; i < ai_cars.length; ++i )
 			ai_cars[ i ].update();
-		camera_fp.moveTo( ai_cars[ 0 ].getPosition().x, ai_cars[ 0 ].getPosition().y, ai_cars[ 0 ].getPosition().z );
-		camera_fp.lookTowards( ai_cars[ 0 ].getVelocity().x, ai_cars[ 0 ].getVelocity().y, ai_cars[ 0 ].getVelocity().z );
 		
+		// Hacky camera adjustment for z-coord/up to avoid having to mess with modelview.
+		Vector3 dir_to_track = user_car.getVelocity().getOrthogonal().getNormalized();
+		camera_fp.setUp( dir_to_track.x, dir_to_track.y, dir_to_track.getNorm() * Math.tan( Math.PI / 2.0 - camber_theta ) );
+		camera_fp.moveTo( user_car.getPosition().x, user_car.getPosition().y, 3.0 + ( t_width / 2.0 - user_car.getSway() ) * Math.sin(camber_theta) );
+		camera_fp.lookTowards( user_car.getVelocity().x, user_car.getVelocity().y, 0.0 );
 		camera.look();
 		
 		gl.glPushMatrix();

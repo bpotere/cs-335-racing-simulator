@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import javax.media.opengl.GL2;
+import javax.media.opengl.glu.GLU;
 
 import com.owens.oobjloader.builder.Face;
 import com.owens.oobjloader.builder.FaceVertex;
@@ -13,6 +14,9 @@ import com.owens.oobjloader.builder.VertexTexture;
 import com.owens.oobjloader.parser.Parse;
 
 public class Car {
+	public static final double ACC_NORM = 0.000005;
+	public static final double MAX_SPEED = 0.0035;
+	public static final double MAX_SPEED_REVERSE = 0.001;
 	protected TempBuilder model;
 	protected double tire_rotation;
 	protected Vector3 position = new Vector3();
@@ -20,6 +24,8 @@ public class Car {
 	protected double t;
 	protected double theta;
 	protected double sway;
+	protected double acceleration_t;
+	protected double velocity_t = 0.003;
 	
 	public Car( GL2 gl ) {
 		model = new TempBuilder( gl );
@@ -35,7 +41,14 @@ public class Car {
 	}
 	
 	public void update() {
-		t += 0.002;
+		velocity_t += acceleration_t;
+		if ( velocity_t > MAX_SPEED )
+			velocity_t = MAX_SPEED;
+		if ( velocity_t < -MAX_SPEED_REVERSE )
+			velocity_t = -MAX_SPEED_REVERSE;
+		
+		acceleration_t = 0.0;
+		t += velocity_t;
 		velocity.x = -JoglEventListener.a * Math.sin( t );
 		velocity.y = JoglEventListener.b * Math.cos( t );
 		Vector3 direction = velocity.getOrthogonal().getNormalized();
@@ -44,17 +57,29 @@ public class Car {
 		
 		position.x = JoglEventListener.a * Math.cos( t ) + direction.x * sway;
 		position.y = JoglEventListener.b * Math.sin( t ) + direction.y * sway;
+		
+		// It's pretty easily to calculate, but let's just pick a constant
+		// tire rotation for simplicity.
+		tire_rotation += 15.0;
+	}
+	
+	public void accelerate() {
+		acceleration_t = ACC_NORM;
+	}
+	
+	public void brake() {
+		acceleration_t = -ACC_NORM;
 	}
 	
 	public void swayLeft() {
-		sway += 0.25;
+		sway += 0.1;
 		
 		if ( sway > JoglEventListener.t_width / 2.0 )
 			sway = JoglEventListener.t_width / 2.0;
 	}
 	
 	public void swayRight() {
-		sway -= 0.25;
+		sway -= 0.1;
 		
 		if ( sway < -JoglEventListener.t_width / 2.0 )
 			sway = -JoglEventListener.t_width / 2.0;
@@ -86,6 +111,10 @@ public class Car {
 		// Initial rotation to straighten the car to point along the track.
 		// If we export the car correctly, we won't have to do this.
 		gl.glRotated( 180, 0, 0, 1 );
+	}
+	
+	public double getSway() {
+		return sway;
 	}
 	
 	public void draw( GL2 gl ) {
