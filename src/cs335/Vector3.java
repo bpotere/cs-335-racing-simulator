@@ -31,6 +31,12 @@ public class Vector3 {
 		return Math.sqrt( x * x + y * y + z * z );
 	}
 	
+	public void plusEquals( Vector3 other ) {
+		x += other.x;
+		y += other.y;
+		z += other.z;
+	}
+	
 	// NOTE: This finds an orthogonal 2D vector (using x,y only).
 	public Vector3 getOrthogonal() {
 		return ( new Vector3( -y, x, 0.0 ) ).getNormalized();

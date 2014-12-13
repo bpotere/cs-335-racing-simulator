@@ -13,12 +13,13 @@ import com.owens.oobjloader.builder.VertexTexture;
 import com.owens.oobjloader.parser.Parse;
 
 public class Car {
-	private TempBuilder model;
-	private double tire_rotation;
-	private Vector3 position = new Vector3();
-	private Vector3 velocity = new Vector3();
-	double t;
-	double theta;
+	protected TempBuilder model;
+	protected double tire_rotation;
+	protected Vector3 position = new Vector3();
+	protected Vector3 velocity = new Vector3();
+	protected double t;
+	protected double theta;
+	protected double sway;
 	
 	public Car( GL2 gl ) {
 		model = new TempBuilder( gl );
@@ -35,13 +36,28 @@ public class Car {
 	
 	public void update() {
 		t += 0.002;
-		position.x = JoglEventListener.a * Math.cos( t );
-		position.y = JoglEventListener.b * Math.sin( t );
-		//position.z = (float) ( JoglEventListener.t_width/2.0 * Math.sin(JoglEventListener.camber_theta) );
-		//position.z = 5.0;
 		velocity.x = -JoglEventListener.a * Math.sin( t );
 		velocity.y = JoglEventListener.b * Math.cos( t );
+		Vector3 direction = velocity.getOrthogonal().getNormalized();
+		
 		theta = Math.atan2( velocity.y, velocity.x );
+		
+		position.x = JoglEventListener.a * Math.cos( t ) + direction.x * sway;
+		position.y = JoglEventListener.b * Math.sin( t ) + direction.y * sway;
+	}
+	
+	public void swayLeft() {
+		sway += 0.25;
+		
+		if ( sway > JoglEventListener.t_width / 2.0 )
+			sway = JoglEventListener.t_width / 2.0;
+	}
+	
+	public void swayRight() {
+		sway -= 0.25;
+		
+		if ( sway < -JoglEventListener.t_width / 2.0 )
+			sway = -JoglEventListener.t_width / 2.0;
 	}
 	
 	public Vector3 getPosition() {
@@ -52,15 +68,14 @@ public class Car {
 		return velocity;
 	}
 	
-	private void applyTransforms( GL2 gl ) {
+	protected void applyTransforms( GL2 gl ) {
 		// Move to where the car should be drawn.
 		gl.glTranslated( position.x, position.y, position.z );
 				
 		// Rotate the car around its derivative, using the track's edge
 		// as the rotational origin.
 		Vector3 direction = velocity.getOrthogonal().getNormalized();
-		// TODO: Needs adjusting if cars can sway on the track.
-		double car_offset = JoglEventListener.t_width / 2.0;
+		double car_offset = JoglEventListener.t_width / 2.0 - sway;
 		gl.glTranslated( car_offset * direction.x, car_offset * direction.y, 0.0 );
 		gl.glRotated( -JoglEventListener.camber_theta * 180 / Math.PI, velocity.x, velocity.y, 0.0 );
 		gl.glTranslated( -car_offset * direction.x, -car_offset * direction.y, 0.0 );

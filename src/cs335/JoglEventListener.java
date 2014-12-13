@@ -55,6 +55,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	// Create some AI cars.
 	private Car[] ai_cars = new Car[ 4 ];
 	
+	private Car user_car = null;
+	
 	private double[] control_points = {
 		127.29361,186.37989, 414.66858,7.0116203, 576.67863,280.88575,
 		738.68868,554.75989, 187.08303,539.33036, 437.81287,869.13653,
@@ -116,10 +118,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		camera_free.moveTo(-10, 0, 6);
 		
-		// Init our AI cars.
+		// Init our cars.
+		user_car = new Car( gl );
+		
 		for ( int i = 0; i < ai_cars.length; ++i ) {
 			ai_cars[ i ] = new Car( gl );
-			ai_cars[ i ].setT( i * 0.05 );
+			ai_cars[ i ].setT( ( i + 1 ) * 0.05 );
 		}
 		
 		gl.glGenTextures( track_textures.length, track_textures, 0 );
@@ -223,7 +227,14 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		else if ( keys[ KeyEvent.VK_D ] )
 			camera_free.strafeRight( throttle_pan );
 		
-		// Update AI cars.
+		// Move the car left/right.
+		if ( keys[ KeyEvent.VK_LEFT ] )
+			user_car.swayLeft();
+		else if ( keys[ KeyEvent.VK_RIGHT ] )
+			user_car.swayRight();
+		
+		// Update cars.
+		user_car.update();
 		for ( int i = 0; i < ai_cars.length; ++i )
 			ai_cars[ i ].update();
 		camera_fp.moveTo( ai_cars[ 0 ].getPosition().x, ai_cars[ 0 ].getPosition().y, ai_cars[ 0 ].getPosition().z );
@@ -236,8 +247,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		skybox.draw( gl, skybox_size );
 		gl.glPopMatrix();
 		
-		// Draw an AI car.
+		// Draw cars.
 		//gl.glPushMatrix();
+		user_car.draw( gl );
 		for ( int i = 0; i < ai_cars.length; ++i )
 			ai_cars[ i ].draw( gl );
 		//gl.glPopMatrix();
