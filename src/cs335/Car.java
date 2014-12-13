@@ -95,11 +95,13 @@ public class Car {
 		if ( collisionDetected( other ) ) {
 			double temp = velocity_t;
 			velocity_t = - velocity_t;
-			update();
+			
+			do {
+				update();
+			} while ( collisionDetected( other ) );
+			
+			// You lose some of your velocity just for colliding.
 			velocity_t = temp * 0.85;
-			//velocity_t = 0.85 * other.velocity_t;
-			//brake();
-			//update();
 		}
 	}
 	
