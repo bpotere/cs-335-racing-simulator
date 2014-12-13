@@ -18,6 +18,7 @@ public class Car {
 	public static final double MAX_SPEED = 0.0035;
 	public static final double MAX_SPEED_REVERSE = 0.001;
 	public static final double SWAY_STEP = 0.1;
+	public static final double CAR_RADIUS = 4.0;
 	protected TempBuilder model;
 	protected double tire_rotation;
 	protected Vector3 position = new Vector3();
@@ -90,15 +91,15 @@ public class Car {
 	public void swayLeft() {
 		sway += SWAY_STEP;
 		
-		if ( sway > JoglEventListener.t_width / 2.0 )
-			sway = JoglEventListener.t_width / 2.0;
+		if ( sway > JoglEventListener.t_width / 2.0 - CAR_RADIUS )
+			sway = JoglEventListener.t_width / 2.0 - CAR_RADIUS;
 	}
 	
 	public void swayRight() {
 		sway -= SWAY_STEP;
 		
-		if ( sway < -JoglEventListener.t_width / 2.0 )
-			sway = -JoglEventListener.t_width / 2.0;
+		if ( sway < -JoglEventListener.t_width / 2.0 + CAR_RADIUS )
+			sway = -JoglEventListener.t_width / 2.0 + CAR_RADIUS;
 	}
 	
 	public void swayFluid( double amount ) {
