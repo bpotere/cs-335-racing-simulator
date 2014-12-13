@@ -37,7 +37,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private TextureLoader texture_loader = null;
 	private final float skybox_size = 2000.0f;
 	
-	private final int[] track_textures = new int[10]; // Asphalt etc. goes here
+	private final int[] track_textures = new int[32]; // Asphalt etc. goes here
 	
 	//The major and minor axis of the racetrack ellipse:
 	public static final double a = 625; // Production value: 625
@@ -177,9 +177,39 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// Load a testing up arrow
 		try {
-			texture_loader.loadTexture( track_textures[ 6 ], "racetrack_textures/UpArrow.jpg" );
+			texture_loader.loadTexture( track_textures[ 6 ], "racetrack_textures/scoreboard.jpg" );
 		} catch ( Exception e ) {
 			
+			e.printStackTrace();
+		}
+		// Garage textures
+		// Load a ceramic roof tile
+		try {
+			texture_loader.loadTexture( track_textures[ 7 ], "racetrack_textures/ceramic_roof_tile.jpg" );
+		} catch ( Exception e ) {
+			
+			e.printStackTrace();
+		}
+		// Load a garage door
+		try {
+			texture_loader.loadTexture( track_textures[ 8 ], "racetrack_textures/garage_door.jpg" );
+		} catch ( Exception e ) {
+					
+			e.printStackTrace();
+		}
+		// Load a white stone concrete
+		try {
+			texture_loader.loadTexture( track_textures[ 9 ], "racetrack_textures/white_stone.jpg" );
+		} catch ( Exception e ) {
+					
+			e.printStackTrace();
+		}
+		
+		// Load a green up arrow
+		try {
+			texture_loader.loadTexture( track_textures[ 10 ], "racetrack_textures/UpArrow_Green.jpg" );
+		} catch ( Exception e ) {
+						
 			e.printStackTrace();
 		}
 	}
@@ -309,10 +339,62 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glTranslated(-c, 0, 0);
 		drawScorePylon(gl);
 		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glTranslated(0, c/4.0, 0);
+		drawGarage(gl);
+		gl.glPopMatrix();
+		
 		gl.glPopMatrix();
 		
 		
+		
+		
 		gl.glPopMatrix();
+	}
+	
+	private void drawGarage( GL2 gl){
+		
+		
+		int block_size = 12;
+		
+		for (int i = -10; i < 10; i = i + 2){
+			gl.glBindTexture( GL.GL_TEXTURE_2D, track_textures[ 7 ] ); //roof
+			gl.glPushMatrix();
+			gl.glTranslated(i * block_size, block_size, block_size);
+			gl.glScaled(4 * block_size, 4 * block_size, 1);
+			drawCube(gl);
+			gl.glPopMatrix();
+			
+			gl.glBindTexture( GL.GL_TEXTURE_2D, track_textures[ 8 ] ); //garage door
+			gl.glPushMatrix();
+			gl.glTranslated(i * block_size, 0, 0);
+			gl.glScaled(block_size, block_size, block_size);
+			drawCube(gl);
+			gl.glPopMatrix();
+			
+			gl.glPushMatrix();
+			gl.glTranslated(i * block_size, block_size, 0);
+			gl.glScaled(block_size, block_size, block_size);
+			drawCube(gl);
+			gl.glPopMatrix();
+			
+			gl.glBindTexture( GL.GL_TEXTURE_2D, track_textures[ 9 ] ); //white stone
+			gl.glPushMatrix();
+			gl.glTranslated((i + 1) * block_size, 0, 0);
+			gl.glScaled(block_size, block_size, block_size);
+			drawCube(gl);
+			gl.glPopMatrix();
+			
+			gl.glPushMatrix();
+			gl.glTranslated((i + 1) * block_size, block_size, 0);
+			gl.glScaled(block_size, block_size, block_size);
+			drawCube(gl);
+			gl.glPopMatrix();
+		}
+		
+		
+		gl.glBindTexture( GL2.GL_TEXTURE_2D, 0 );
 	}
 	
 	private void drawBillboard( GL2 gl, float x, float y ) {
@@ -479,14 +561,10 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		 // front plane -- top
 		 gl.glNormal3d(0,  0, 1);
 		 //gl.glColor3d(1, 0, 0);
-		 gl.glTexCoord2d(0.0f, 1.0f);
-		 gl.glVertex3d(0, 0, 1); 
-		 gl.glTexCoord2d(1.0f, 1.0f);
-		 gl.glVertex3d(1, 0, 1);
-		 gl.glTexCoord2d(1.0f, 0.0f);
-		 gl.glVertex3d(1, 1, 1); 
-		 gl.glTexCoord2d(0.0f, 0.0f);
-		 gl.glVertex3d(0, 1, 1);
+		 gl.glTexCoord2d(0.0f, 1.0f);		 gl.glVertex3d(0, 0, 1); 
+		 gl.glTexCoord2d(1.0f, 1.0f);		 gl.glVertex3d(1, 0, 1);
+		 gl.glTexCoord2d(1.0f, 0.0f);		 gl.glVertex3d(1, 1, 1); 
+		 gl.glTexCoord2d(0.0f, 0.0f);		 gl.glVertex3d(0, 1, 1);
 		
 		 // back plane -- bottom
 		 gl.glNormal3d(0,  0, -1);
@@ -500,10 +578,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		 // left plane 
 		 gl.glNormal3f(-1,  0, 0);
 		 //gl.glColor3f(0, 1, 0);
-		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(0, 0, 0); 
-		 gl.glTexCoord2f(1f, 0f);gl.glVertex3d(0, 1, 0);
-		 gl.glTexCoord2f(1f, 1f);gl.glVertex3d(0, 1, 1); 
-		 gl.glTexCoord2f(0f, 1f);gl.glVertex3d(0, 0, 1);
+		 gl.glTexCoord2f(1f, 0f);gl.glVertex3d(0, 0, 0); 
+		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(0, 1, 0);
+		 gl.glTexCoord2f(0f, 1f);gl.glVertex3d(0, 1, 1); 
+		 gl.glTexCoord2f(1f, 1f);gl.glVertex3d(0, 0, 1);
+		 
 		 
 		 // right plane
 		 gl.glNormal3f(1,  0, 0);
@@ -515,15 +594,15 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		 
 		 
 		 // on the XZ plane,  
-		 // up plane; 
+		 // up plane;  -- front
 		 gl.glNormal3f(0,  1, 0);
 		 //gl.glColor3f(0, 0, 1);
-		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(0, 1, 0); 
-		 gl.glTexCoord2f(1f, 0f);gl.glVertex3d(1, 1, 0);
-		 gl.glTexCoord2f(1f, 1f);gl.glVertex3d(1, 1, 1); 
-		 gl.glTexCoord2f(0f, 1f);gl.glVertex3d(0, 1, 1);
+		 gl.glTexCoord2f(1f, 0f);gl.glVertex3d(0, 1, 0); 
+		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(1, 1, 0);
+		 gl.glTexCoord2f(0f, 1f);gl.glVertex3d(1, 1, 1); 
+		 gl.glTexCoord2f(1f, 1f);gl.glVertex3d(0, 1, 1);
 		 
-		 // down plane; 
+		 // down plane; -- back
 		 gl.glNormal3f(0,  -1, 0);
 		 //gl.glColor3f(0, 0, 1);
 		 gl.glTexCoord2f(0f, 0f);gl.glVertex3d(0, 0, 0); 
