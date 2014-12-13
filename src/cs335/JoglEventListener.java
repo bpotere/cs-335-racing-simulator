@@ -117,7 +117,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Setup the cameras.
 		camera_free = new Camera();
 		camera_fp = new Camera();
-		camera = camera_free;
+		camera = camera_fp;
 		
 		camera_free.moveTo(-10, 0, 6);
 		
@@ -254,8 +254,12 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 				else
 					ai_cars[ i ].swayFluid( random.nextFloat() * 10 );
 			}
-			if ( ai_cars[ i ].getVelocityT() < Car.INITIAL_V_T || random.nextInt( 100 ) < 10 )
-				ai_cars[ i ].accelerate();
+			if ( ai_cars[ i ].getVelocityT() < Car.INITIAL_V_T || random.nextInt( 100 ) < 10 ) {
+				if ( random.nextInt( 100 ) < 90 )
+					ai_cars[ i ].accelerate();
+				else
+					ai_cars[ i ].brake();
+			}
 			ai_cars[ i ].update();
 			
 			// Check collision with all other cars.
