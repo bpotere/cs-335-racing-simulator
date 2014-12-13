@@ -245,13 +245,25 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Update cars.
 		user_car.update();
 		for ( int i = 0; i < ai_cars.length; ++i ) {
+			// Check collision with ai cars.
+			user_car.revertOnCollision( ai_cars[ i ] );
+			
 			if ( random.nextInt( 100 ) < 1 ) {
 				if ( random.nextInt( 100 ) < 50 )
 					ai_cars[ i ].swayFluid( -random.nextFloat() * 10 );
 				else
 					ai_cars[ i ].swayFluid( random.nextFloat() * 10 );
 			}
+			if ( ai_cars[ i ].getVelocityT() < Car.INITIAL_V_T || random.nextInt( 100 ) < 10 )
+				ai_cars[ i ].accelerate();
 			ai_cars[ i ].update();
+			
+			// Check collision with all other cars.
+			ai_cars[ i ].revertOnCollision( user_car );
+			for ( int j = 0; j < ai_cars.length; ++j ) {
+				if ( i == j ) continue;
+				ai_cars[ i ].revertOnCollision( ai_cars[ j ] );
+			}
 		}
 		
 		// Hacky camera adjustment for z-coord/up to avoid having to mess with modelview.

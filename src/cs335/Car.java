@@ -19,6 +19,7 @@ public class Car {
 	public static final double MAX_SPEED_REVERSE = 0.001;
 	public static final double SWAY_STEP = 0.1;
 	public static final double CAR_RADIUS = 4.0;
+	public static final double INITIAL_V_T = 0.003;
 	protected TempBuilder model;
 	protected double tire_rotation;
 	protected Vector3 position = new Vector3();
@@ -27,7 +28,7 @@ public class Car {
 	protected double theta;
 	protected double sway;
 	protected double acceleration_t;
-	protected double velocity_t = 0.003;
+	protected double velocity_t = INITIAL_V_T;
 	protected double sway_amount_fluid = 0.0;
 	
 	public Car( GL2 gl ) {
@@ -37,6 +38,14 @@ public class Car {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public double getVelocityT() {
+		return velocity_t;
+	}
+	
+	public double getT() {
+		return t;
 	}
 	
 	public void setT( double t ) {
@@ -72,6 +81,8 @@ public class Car {
 		
 		theta = Math.atan2( velocity.y, velocity.x );
 		
+		//last_position.x = position.x;
+		//last_position.y = position.y;
 		position.x = JoglEventListener.a * Math.cos( t ) + direction.x * sway;
 		position.y = JoglEventListener.b * Math.sin( t ) + direction.y * sway;
 		
@@ -80,12 +91,41 @@ public class Car {
 		tire_rotation += 15.0;
 	}
 	
+	public void revertOnCollision( Car other ) {
+		if ( collisionDetected( other ) ) {
+			double temp = velocity_t;
+			velocity_t = - velocity_t;
+			update();
+			velocity_t = temp * 0.85;
+			//velocity_t = 0.85 * other.velocity_t;
+			//brake();
+			//update();
+		}
+	}
+	
+	public boolean collisionDetected( Car other ) {
+		double disp = new Vector3(
+			other.getPosition().x - getPosition().x,
+			other.getPosition().y - getPosition().y,
+			0.0
+		).getNorm();
+		
+		if ( disp < 2 * CAR_RADIUS )
+			return true;
+		else
+			return false;
+	}
+	
 	public void accelerate() {
 		acceleration_t = ACC_NORM;
 	}
 	
 	public void brake() {
 		acceleration_t = -ACC_NORM;
+	}
+	
+	public void brakeHard() {
+		acceleration_t = -Math.sqrt( ACC_NORM );
 	}
 	
 	public void swayLeft() {
