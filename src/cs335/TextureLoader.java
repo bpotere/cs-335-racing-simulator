@@ -28,7 +28,23 @@ public class TextureLoader {
 	
 	public void loadTexture( int texture_id, String filename ) throws IOException, InterruptedException {
 		BufferedImage img = ImageIO.read( new File( filename ) );
+		ByteBuffer pixel_buffer = getRawData( img );
 		
+		gl.glBindTexture( GL2.GL_TEXTURE_2D, texture_id );
+		setupTextureParameters();
+		gl.glTexImage2D( GL2.GL_TEXTURE_2D, 0, GL2.GL_RGBA, img.getWidth(),
+				img.getHeight(), 0, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, pixel_buffer );
+	}
+	
+	protected void setupTextureParameters() {
+		gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR );
+		gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_LINEAR );
+		gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, GL2.GL_REPEAT );
+		gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, GL2.GL_REPEAT );
+		gl.glTexEnvf( GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE );
+	}
+	
+	public ByteBuffer getRawData( BufferedImage img ) throws InterruptedException {
 		int[] pixels = new int[ img.getWidth() * img.getHeight() ];
 		PixelGrabber grabber = new PixelGrabber( img, 0, 0,
 				img.getWidth(), img.getHeight(), pixels, 0, img.getWidth() );
@@ -48,17 +64,6 @@ public class TextureLoader {
 
 		pixel_buffer.flip();
 		
-		gl.glBindTexture( GL2.GL_TEXTURE_2D, texture_id );
-		setupTextureParameters();
-		gl.glTexImage2D( GL2.GL_TEXTURE_2D, 0, GL2.GL_RGBA, img.getWidth(),
-				img.getHeight(), 0, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, pixel_buffer );
-	}
-	
-	protected void setupTextureParameters() {
-		gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MIN_FILTER, GL2.GL_LINEAR );
-		gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_MAG_FILTER, GL2.GL_LINEAR );
-		gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_S, GL2.GL_REPEAT );
-		gl.glTexParameteri( GL2.GL_TEXTURE_2D, GL2.GL_TEXTURE_WRAP_T, GL2.GL_REPEAT );
-		gl.glTexEnvf( GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_REPLACE );
+		return pixel_buffer;
 	}
 }
