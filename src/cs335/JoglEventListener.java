@@ -115,7 +115,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Generate textures.
 		gl.glEnable( GL2.GL_TEXTURE_2D );
 		texture_loader = new TextureLoader( gl );
-		skybox = new Skybox( texture_loader, skybox_name );
+		skybox = new Skybox( new TextureLoaderClamping( gl ), skybox_name );
 
 		gl.glMatrixMode( GL2.GL_MODELVIEW );
 		gl.glLoadIdentity();
