@@ -336,7 +336,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Hacky camera adjustment for z-coord/up to avoid having to mess with modelview.
 		Vector3 dir_to_track = user_car.getVelocity().getOrthogonal().getNormalized();
 		camera_fp.setUp( dir_to_track.x, dir_to_track.y, dir_to_track.getNorm() * Math.tan( Math.PI / 2.0 - camber_theta ) );
-		camera_fp.moveTo( user_car.getPosition().x, user_car.getPosition().y, 3.0 + ( t_width / 2.0 - user_car.getSway() ) * Math.sin(camber_theta) );
+		camera_fp.moveTo( user_car.getPosition().x + dir_to_track.x * 1.5, user_car.getPosition().y + dir_to_track.y * 1.5, 2.2 + ( t_width / 2.0 - user_car.getSway() ) * Math.sin(camber_theta) );
 		camera_fp.lookTowards( user_car.getVelocity().x, user_car.getVelocity().y, 0.0 );
 		camera.look();
 		
