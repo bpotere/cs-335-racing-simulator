@@ -63,6 +63,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private Camera camera_free = null;
 	private Camera camera = null;
 	
+	// Hold the HUD data.
+	ByteBuffer hud_data = null;
+	
 	// Render text.
 	TextRenderer text_renderer = null;
 	
@@ -122,6 +125,14 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// Allow text drawing.
 		text_renderer = new TextRenderer( new Font( Font.SANS_SERIF, Font.BOLD, 12 ) );
+		
+		// Load the HUD.
+		try {
+			hud_data = texture_loader.getRawData( ImageIO.read( new File( "racetrack_textures/speedometer.png" ) ) );
+		} catch ( Exception e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		// Setup the cameras.
 		camera_free = new Camera();
@@ -468,6 +479,29 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		text_renderer.endRendering();
 		
 		gl.glPopMatrix();
+		
+		// Super duper lastly, draw the HUD if we are in first person mode.
+		if ( camera == camera_fp )
+			drawHUD( gl );
+	}
+	
+	private void drawHUD( GL2 gl ) {
+		gl.glMatrixMode( GL2.GL_PROJECTION );
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+		glu.gluOrtho2D( 0.0, windowWidth, 0.0, windowHeight );
+		
+		gl.glMatrixMode( GL2.GL_MODELVIEW );
+		gl.glPushMatrix();
+		gl.glLoadIdentity();
+		
+		gl.glRasterPos2f( 32.0f, 32.0f );
+		gl.glDrawPixels( 128, 128, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, hud_data );
+		
+		gl.glPopMatrix();
+		gl.glMatrixMode( GL2.GL_PROJECTION );
+		gl.glPopMatrix();
+		gl.glMatrixMode( GL2.GL_MODELVIEW );
 	}
 	
 	private void drawGarage( GL2 gl){
