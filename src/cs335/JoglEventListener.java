@@ -35,7 +35,7 @@ import com.owens.oobjloader.parser.Parse;
 public class JoglEventListener implements GLEventListener, KeyListener, MouseListener, MouseMotionListener {
 	private int windowWidth, windowHeight;
 	
-	private String skybox_name = "ThickCloudsWater";
+	private String skybox_name = "FullMoon";
 	private Skybox skybox = null;
 	private TextureLoader texture_loader = null;
 	private final float skybox_size = 2000.0f;
