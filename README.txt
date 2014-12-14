@@ -40,4 +40,4 @@ SYNOPSIS
 
 REFERENCES
 
-  Owens, Sean R.  Parser and Builder.  http://lwjgl.org  27 Oct. 2011.  Web.  Software.  12 Dec. 2014.
+  Owens, Sean R.  Parser and Builder.  http://lwjgl.org, https://github.com/seanrowens/oObjLoader  27 Oct. 2011.  Web.  Software.  12 Dec. 2014.
