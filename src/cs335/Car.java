@@ -211,13 +211,10 @@ public class Car {
 			for ( int j = 0; j < faces.size(); ++j ) {
 				Face face = faces.get( j );
 
-				if ( 0 != face.material.texid && face.material.texid != current_tex_id ) {
+				if ( face.material.texid != current_tex_id ) {
 					current_tex_id = face.material.texid;
-					//gl.glEnable( GL2.GL_TEXTURE_2D );
 					gl.glBindTexture( GL2.GL_TEXTURE_2D, face.material.texid );
 					//bind_total++;
-				} else {
-					//gl.glDisable( GL2.GL_TEXTURE_2D );
 				}
 				
 				gl.glBegin( GL2.GL_TRIANGLES );
@@ -242,5 +239,7 @@ public class Car {
 
 		//System.out.println( "Needed to bind #" + bind_total );
 		gl.glPopMatrix();
+		
+		gl.glBindTexture( GL2.GL_TEXTURE_2D, 0 );
 	}
 }
