@@ -233,11 +233,36 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 						
 			e.printStackTrace();
 		}
+		try {
+			texture_loader.loadTexture( track_textures[ 12 ], "racetrack_textures/scoreboard_1.jpg" );
+		} catch ( Exception e ) {
+						
+			e.printStackTrace();
+		}
+		try {
+			texture_loader.loadTexture( track_textures[ 13 ], "racetrack_textures/scoreboard_2.jpg" );
+		} catch ( Exception e ) {
+						
+			e.printStackTrace();
+		}
+		try {
+			texture_loader.loadTexture( track_textures[ 14 ], "racetrack_textures/scoreboard_3.jpg" );
+		} catch ( Exception e ) {
+						
+			e.printStackTrace();
+		}
+		try {
+			texture_loader.loadTexture( track_textures[ 15 ], "racetrack_textures/checkers.jpg" );
+		} catch ( Exception e ) {
+						
+			e.printStackTrace();
+		}
 
 		//Start the track time counter.
 		user_track_time = System.currentTimeMillis();
 	}
-	
+	//Start the track time counter.
+	user_track_time = System.currentTimeMillis();
 	public void reshape(
 						GLAutoDrawable gLDrawable,
 						int x,
@@ -376,6 +401,39 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glPushMatrix();
 		gl.glTranslated(0, c/4.0, 0);
 		drawGarage(gl);
+		gl.glPopMatrix();
+		
+		gl.glPushMatrix();
+		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 15 ]);
+		gl.glBegin(GL2.GL_QUADS);
+		double x1 = (a + t_width/2.0) * Math.cos(Math.PI/2.0);
+		double y1 = (b + t_width/2.0) * Math.sin(Math.PI/2.0);
+		double z = t_width * Math.sin(camber_theta);
+		gl.glTexCoord2d(0, 0);
+		gl.glVertex3d(x1, y1, z);
+		
+		x1 = (a + t_width/2.0) * Math.cos((1)/180.0 * Math.PI + Math.PI/2.0);
+		y1 = (b + t_width/2.0) * Math.sin((1)/180.0 * Math.PI + Math.PI/2.0);
+		gl.glTexCoord2d(1, 0);
+		gl.glVertex3d(x1, y1, z);
+		
+		x1 = (a - t_width/2.0) * Math.cos((1)/180.0 * Math.PI + Math.PI/2.0);
+		y1 = (b - t_width/2.0) * Math.sin((1)/180.0 * Math.PI + Math.PI/2.0);
+		gl.glTexCoord2d(1, 1);
+		gl.glVertex3d(x1, y1, 0);
+		
+		x1 = (a - t_width/2.0) * Math.cos(Math.PI/2.0);
+		y1 = (b - t_width/2.0) * Math.sin(Math.PI/2.0);
+		gl.glTexCoord2d(0, 1);
+		gl.glVertex3d(x1, y1, 0);
+		
+		//gl.glTexCoord2d(0.0f, 1.0f);		 gl.glVertex3d(0, 0, 1); 
+		//gl.glTexCoord2d(1.0f, 1.0f);		 gl.glVertex3d(1, 0, 1);
+		//gl.glTexCoord2d(1.0f, 0.0f);		 gl.glVertex3d(1, 1, 1); 
+		//gl.glTexCoord2d(0.0f, 0.0f);		 gl.glVertex3d(0, 1, 1);
+		
+		gl.glEnd();
+		
 		gl.glPopMatrix();
 		
 		gl.glPopMatrix();
@@ -676,7 +734,18 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glPopMatrix();
 		
 		//The main screen -- needs a texture
-		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 6 ]);
+		if (user_car.getT() < Math.PI/2.0){
+			gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 6 ]);	//Blank lap time
+		}
+		else if (Math.PI/2.0 <= user_car.getT() && user_car.getT() < 5*Math.PI/2.0){
+			gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 12 ]);	//Lap 1
+		}
+		else if (5*Math.PI/2.0 <= user_car.getT() && user_car.getT() < 9*Math.PI/2.0){
+			gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 13 ]);	//Lap 2
+		}
+		else if (9*Math.PI/2.0 <= user_car.getT()){
+			gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 14 ]);	//Lap 3
+		}
 		gl.glPushMatrix();
 		gl.glColor4d(0, 0, 0, 1);
 		gl.glTranslated(0, 0, 128);
@@ -686,6 +755,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
 		
 		//Speakers up top -- needs a texture
+
 		gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[ 11 ]); //speaker
 		for ( int theta = 0; theta < 360; theta += 30 ){
 			gl.glPushMatrix();
