@@ -1,5 +1,6 @@
 package cs335;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -70,13 +71,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	
 	private Car user_car = null;
 	
-	private double[] control_points = {
-		127.29361,186.37989, 414.66858,7.0116203, 576.67863,280.88575,
-		738.68868,554.75989, 187.08303,539.33036, 437.81287,869.13653,
-		688.54271,1198.9427, 55.932041,955.92763, 94.505863,869.13653,
-		133.07968,782.34543, 316.30534,548.97381, 200.58387,365.74816,
-		84.862407,182.52251, 127.29361,186.37989, 127.29361,186.37989 // z
-	};
+	// Who is the winner? -1 for none, 0 for user, 1+ for ai car
+	private int winner_declared = -1;
 	
 	private int mouse_x0 = 0;
 	private int mouse_y0 = 0;
@@ -344,6 +340,22 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 				ai_cars[ i ].revertOnCollision( ai_cars[ j ] );
 			}
 		}
+		
+		// End of loop detection
+		if ( winner_declared < 0 ) {
+			int highest_t_car = 0;
+			double highest_t = user_car.getT();
+			
+			for ( int i = 0; i < ai_cars.length; ++i ) {
+				if ( ai_cars[ i ].getT() > highest_t ) {
+					highest_t = ai_cars[ i ].getT();
+					highest_t_car = i + 1;
+				}
+			}
+			
+			if ( highest_t > 13 * Math.PI / 2.0 )
+				winner_declared = highest_t_car;
+		}
 	}
 
 	@Override
@@ -441,7 +453,18 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// LASTLY (VERY IMPORTANT): draw the lap times text. Do this earlier, and
 		// it will be obscured by things drawn after it.
 		text_renderer.beginRendering( windowWidth, windowHeight );
+		text_renderer.setColor( Color.WHITE );
 		text_renderer.draw( "Time: " + ( ( System.currentTimeMillis() - user_track_time ) / 1000.0f ) + " s", 32, windowHeight - 32 );
+		
+		// Print the winner message if one has been declared.
+		if ( 0 == winner_declared ) {
+			text_renderer.setColor( Color.GREEN );
+			text_renderer.draw( "YOU ARE THE WINNER! ROCK ON!", 32, windowHeight - 48 );
+		} else if ( winner_declared > 0 ) {
+			text_renderer.setColor( Color.RED );
+			text_renderer.draw( "YOU FAILED! YOUR LIFE IS MEANINGLESS!", 32, windowHeight - 48 );
+		}
+		
 		text_renderer.endRendering();
 		
 		gl.glPopMatrix();
