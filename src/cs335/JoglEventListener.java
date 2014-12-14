@@ -1,5 +1,6 @@
 package cs335;
 
+import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -22,6 +23,7 @@ import javax.imageio.ImageIO;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
 
+import com.jogamp.opengl.util.awt.TextRenderer;
 import com.owens.oobjloader.builder.Build;
 import com.owens.oobjloader.builder.Face;
 import com.owens.oobjloader.builder.FaceVertex;
@@ -46,6 +48,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	public static final double camber_theta = 9.0/180.0 * Math.PI;
 	public static final double t_width = 50;
 	
+	private long user_track_time;
+	
 	// Random stuff
 	Random random = new Random();
 	
@@ -54,6 +58,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	private Camera camera_fp = null;
 	private Camera camera_free = null;
 	private Camera camera = null;
+	
+	// Render text.
+	TextRenderer text_renderer = null;
 	
 	// Create some AI cars.
 	private Car[] ai_cars = new Car[ 4 ];
@@ -113,6 +120,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		// Initialize the keys.
 		for ( int i = 0; i < keys.length; ++i )
 			keys[i] = false;
+		
+		// Allow text drawing.
+		text_renderer = new TextRenderer( new Font( Font.SANS_SERIF, Font.BOLD, 12 ) );
 		
 		// Setup the cameras.
 		camera_free = new Camera();
@@ -212,6 +222,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 						
 			e.printStackTrace();
 		}
+		
+		// Start the track time counter.
+		user_track_time = System.currentTimeMillis();
 	}
 	
 	public void reshape(
@@ -348,7 +361,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glPopMatrix();
 		
 		
-		
+		// LASTLY (VERY IMPORTANT): draw the lap times text. Do this earlier, and
+		// it will be obscured by things drawn after it.
+		text_renderer.beginRendering( windowWidth, windowHeight );
+		text_renderer.draw( "Time: " + ( ( System.currentTimeMillis() - user_track_time ) / 1000.0f ) + " s", 32, windowHeight - 32 );
+		text_renderer.endRendering();
 		
 		gl.glPopMatrix();
 	}
