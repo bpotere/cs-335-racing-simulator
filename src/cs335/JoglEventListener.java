@@ -261,8 +261,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		//Start the track time counter.
 		user_track_time = System.currentTimeMillis();
 	}
-	//Start the track time counter.
-	user_track_time = System.currentTimeMillis();
+	
 	public void reshape(
 						GLAutoDrawable gLDrawable,
 						int x,
