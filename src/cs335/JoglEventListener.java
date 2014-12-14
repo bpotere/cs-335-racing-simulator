@@ -366,18 +366,6 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		drawGarage(gl);
 		gl.glPopMatrix();
 		
-		for ( int i = 0; i < 360; i = i + 60){
-			double x = a * Math.cos(i/180.0 * Math.PI);
-			double y = b * Math.sin(i/180.0 * Math.PI);
-			gl.glPushMatrix();
-			gl.glBindTexture(GL.GL_TEXTURE_2D, track_textures[10]);
-			gl.glTranslated( x, y, 8);
-			
-			gl.glScaled(3, 3, 3);
-			drawCube(gl);
-			gl.glPopMatrix();
-		}
-		
 		gl.glPopMatrix();
 		
 		
