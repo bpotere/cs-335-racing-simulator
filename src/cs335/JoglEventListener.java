@@ -50,6 +50,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	
 	private long user_track_time;
 	
+	// Should we animate?
+	private boolean should_animate = true;
+	
 	// Random stuff
 	Random random = new Random();
 	
@@ -107,7 +110,7 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glBlendFunc( GL2.GL_SRC_ALPHA, GL2.GL_ONE_MINUS_SRC_ALPHA );
 		
 		gl.glEnable( GL2.GL_ALPHA_TEST );
-		gl.glAlphaFunc( GL2.GL_GREATER, 0.0f );
+		gl.glAlphaFunc( GL2.GL_GREATER, 0.5f );
 		
 		// Generate textures.
 		gl.glEnable( GL2.GL_TEXTURE_2D );
@@ -251,16 +254,8 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		gl.glLoadIdentity();
 		glu.gluPerspective( 60.0f, (float) windowWidth / windowHeight, 0.1f, skybox_size / 2.0 * Math.sqrt( 3 ) );
 	}
-
-	@Override
-	public void display( GLAutoDrawable gLDrawable ) {
-		final GL2 gl = gLDrawable.getGL().getGL2();
-		
-		gl.glClear( GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT );
-		
-		gl.glMatrixMode( GL2.GL_MODELVIEW );
-		gl.glPushMatrix();
-		
+	
+	private void updateEvents( GL2 gl ) {
 		final float throttle_pan = 1.0f;
 		
 		// Move forward/backward.
@@ -280,6 +275,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 			camera_free.strafeLeft( throttle_pan );
 		else if ( keys[ KeyEvent.VK_D ] )
 			camera_free.strafeRight( throttle_pan );
+		
+		// Now that we're done with the camera stuff, we should bail if
+		// animations are off.
+		if ( ! should_animate )
+			return;
 		
 		// Move the car left/right.
 		if ( keys[ KeyEvent.VK_LEFT ] )
@@ -320,6 +320,18 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 				ai_cars[ i ].revertOnCollision( ai_cars[ j ] );
 			}
 		}
+	}
+
+	@Override
+	public void display( GLAutoDrawable gLDrawable ) {
+		final GL2 gl = gLDrawable.getGL().getGL2();
+		
+		gl.glClear( GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT );
+		
+		gl.glMatrixMode( GL2.GL_MODELVIEW );
+		gl.glPushMatrix();
+
+		updateEvents( gl );
 		
 		// Hacky camera adjustment for z-coord/up to avoid having to mess with modelview.
 		Vector3 dir_to_track = user_car.getVelocity().getOrthogonal().getNormalized();
@@ -371,9 +383,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// LASTLY (VERY IMPORTANT): draw the lap times text. Do this earlier, and
 		// it will be obscured by things drawn after it.
-		text_renderer.beginRendering( windowWidth, windowHeight );
-		text_renderer.draw( "Time: " + ( ( System.currentTimeMillis() - user_track_time ) / 1000.0f ) + " s", 32, windowHeight - 32 );
-		text_renderer.endRendering();
+		if ( should_animate ) {
+			text_renderer.beginRendering( windowWidth, windowHeight );
+			text_renderer.draw( "Time: " + ( ( System.currentTimeMillis() - user_track_time ) / 1000.0f ) + " s", 32, windowHeight - 32 );
+			text_renderer.endRendering();
+		}
 		
 		gl.glPopMatrix();
 	}
@@ -694,6 +708,11 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 	@Override
 	public void keyTyped( KeyEvent e ) {
 		switch ( e.getKeyChar() ) {
+			// Toggle animations.
+			case KeyEvent.VK_0:
+				should_animate = ! should_animate;
+				break;
+				
 			// Switch to free view camera.
 			case KeyEvent.VK_1:
 				if ( camera != camera_free ) {
