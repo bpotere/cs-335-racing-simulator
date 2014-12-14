@@ -383,11 +383,9 @@ public class JoglEventListener implements GLEventListener, KeyListener, MouseLis
 		
 		// LASTLY (VERY IMPORTANT): draw the lap times text. Do this earlier, and
 		// it will be obscured by things drawn after it.
-		if ( should_animate ) {
-			text_renderer.beginRendering( windowWidth, windowHeight );
-			text_renderer.draw( "Time: " + ( ( System.currentTimeMillis() - user_track_time ) / 1000.0f ) + " s", 32, windowHeight - 32 );
-			text_renderer.endRendering();
-		}
+		text_renderer.beginRendering( windowWidth, windowHeight );
+		text_renderer.draw( "Time: " + ( ( System.currentTimeMillis() - user_track_time ) / 1000.0f ) + " s", 32, windowHeight - 32 );
+		text_renderer.endRendering();
 		
 		gl.glPopMatrix();
 	}
