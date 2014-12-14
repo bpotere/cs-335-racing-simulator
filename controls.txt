@@ -1,0 +1,21 @@
+When you start the game, you will be ready to drive.
+
+Press LEFT/RIGHT arrows to move up and down the track.
+Press the UP/DOWN arrows to accelerate/brake.
+
+If you manage to slow all the way down, you will begin to drive backwards,
+although this is pretty pointless.
+
+Press 1 to switch to free roam mode.
+Press 2 to switch back to first person mode.
+
+In free roam mode, you have full 3D camera controls.
+
+Click and hold the left mouse button and drag to rotate.
+Press W/S to move forward or backward in the direction you are
+facing. Note that this direction is projected onto the XY plane
+to avoid you moving slower or faster when looking down.
+Press A/D to strafe left or right.
+Press R/F to move up or down.
+
+Enjoy!
